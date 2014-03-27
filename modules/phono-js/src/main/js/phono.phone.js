@@ -753,7 +753,10 @@
          // Transport information update
          case "transport-replace":
          case "transport-accept":
-            call.transport.processTransport($(iq), true);
+         case "transport-info":
+            $(iq).find('transport').each(function () {
+                call.transport.processTransport(this, true, $(iq));
+            });
             break;
 
          // Hangup

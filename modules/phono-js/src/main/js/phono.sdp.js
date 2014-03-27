@@ -215,7 +215,7 @@
             if (iceObj.ufrag) sdp = sdp + " username " + iceObj.ufrag;
             if (iceObj.pwd) sdp = sdp + " password " + iceObj.pwd;
         } else {
-            sdp = sdp+ " username root password mysecret";// I know a secret
+            //sdp = sdp+ " username root password mysecret";// I know a secret
         }
         if (c.generation) sdp = sdp + " generation " + c.generation;
         sdp = sdp + "\r\n";
@@ -255,6 +255,7 @@
 
     _buildFingerprint = function(fingerObj) {
         var sdp = "a=fingerprint:" + fingerObj.hash + " " + fingerObj.print + "\r\n";
+        sdp +="a=setup:actpass\r\n";
         return sdp;
     }
 
@@ -409,7 +410,7 @@
                     desc['rtcp-mux'] = sdpObj['rtcp-mux'];
                 }
 
-                c = c.c('content', {creator:"initiator"})
+                c = c.c('content', {creator:"initiator",name:sdpObj.media.type})
                 .c('description', desc);
                 
                 Phono.util.each(sdpObj.codecs, function() {
@@ -458,7 +459,10 @@
                     transp.options = iceObj.options;
                 }
 	        c = c.c('transport',transp);
+                var ccnt = 1;
                 Phono.util.each(sdpObj.candidates, function() {
+                    this.id = ccnt++;
+                    this.network='0';
                     c = c.c('candidate', this).up();           
                 });
 		// two places to find the fingerprint
@@ -471,7 +475,7 @@
 		    fp = blob.session.fingerprint;
 		}
                 if (fp){
-                    c = c.c('fingerprint',{xmlns:"urn:xmpp:tmp:jingle:apps:dtls:0",
+                    c = c.c('fingerprint',{xmlns:"urn:xmpp:jingle:apps:dtls:0",
 				hash:fp.hash,
                                 required:fp.required});
                     c.t(fp.print);
