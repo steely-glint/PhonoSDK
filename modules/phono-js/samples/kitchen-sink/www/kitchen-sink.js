@@ -229,6 +229,7 @@ $(document).ready(function() {
 	    }
         });
         phonos[newPhonoID].setLogLevel("DEBUG");
+        return phonos[newPhonoID];
     }
         
     //Creates a new call
@@ -604,16 +605,44 @@ $(document).ready(function() {
 	    .prependTo("body");
     }
 
-    if (urlParam("connectionUrl") != undefined && urlParam("jid") != undefined && urlParam("password") != undefined) {
+    if (urlParam("connectionUrl") != undefined && urlParam("jid") != undefined) {
+        var password = null;
+        if (urlParam("password") != undefined) {
+            connectionUrl = urlParam("password");
+        }
+
+        Strophe.log = function(level, msg) {
+            if (level == 4) {
+                console.log("STROPHE ERROR! " + level + " : " + msg);
+            }
+            console.log("STROPHE " + level + " : " + msg);
+        };
         connection = new Strophe.Connection(urlParam("connectionUrl"));
+
+        var xmlSerializer = {};
+        if (navigator.appName.indexOf('Internet Explorer') > 0) {
+            xmlSerializer.serializeToString = function(body) {
+                return body.xml;
+            };
+        } else {
+            xmlSerializer = new XMLSerializer();
+        }
+        connection.xmlInput = function(body) {
+            console.log("[WIRE] (i) " + xmlSerializer.serializeToString(body));
+        };
+        connection.xmlOutput = function(body) {
+            console.log("[WIRE] (o) " + xmlSerializer.serializeToString(body));
+        };
         connection.connect(urlParam("jid") + "/phono",
-                           urlParam("password"),
-                           function(status) {
-                               if (status == Strophe.Status.CONNECTED) {
-                                   connection.send($pres().tree());
-                                   createNewPhono(connection);
-                               };
-                           });
+                password,
+                function(status) {
+                    if (status == Strophe.Status.CONNECTED) {
+                        connection.send($pres().tree());
+                        var phono = createNewPhono(connection);
+                        phono.connect();
+                    }
+                    ;
+                });
     } else {
         createNewPhono(null);
     }

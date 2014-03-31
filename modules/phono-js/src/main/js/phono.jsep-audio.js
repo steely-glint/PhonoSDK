@@ -395,6 +395,7 @@ JSEPAudio.prototype.transport = function(config) {
     var audio = this;
     var candidateCount = 0;
     var remoteCandidates = [];
+    var haveRemoteDescription = false;
 
 
 
@@ -493,8 +494,8 @@ JSEPAudio.prototype.transport = function(config) {
 
             var cb2 = function() {
                 pc.addStream(JSEPAudio.localStream);
-                var setlfail = function(er) {
-                    Phono.log.error('failed to setlocal ' + er);
+                var setlfail = function(e) {
+                    Phono.log.error('failed to setlocal ' + +JSON.stringify(e));
                 };
                 var setlok = function() {
                     Phono.log.info('setlocal ok');
@@ -508,24 +509,24 @@ JSEPAudio.prototype.transport = function(config) {
                     }, 1000);
                     Phono.log.info('Set local description ' + JSON.stringify(localDesc));
                 };
-                var offerfail = function() {
-                    Phono.log.error('failed to create offer');
+                var offerfail = function(e) {
+                    Phono.log.error('failed to create offer '+JSON.stringify(e));
                 };
-                var ansfail = function() {
-                    Phono.log.error('failed to create answer');
+                var ansfail = function(e) {
+                    Phono.log.error('failed to create answer '+JSON.stringify(e));
                 };
 
                 if (direction == "answer") {
                     Phono.log.info('Set remote description ' + JSON.stringify(inboundOffer));
                     pc.setRemoteDescription(inboundOffer,
                             function() {
+                                haveRemoteDescription = true;
                                 Phono.log.debug("remoteDescription happy");
                                 pc.createAnswer(cb, ansfail);
-                                inboundOffer = null;
                                 addRemoteCandidates();
                             },
-                            function() {
-                                Phono.log.error("remoteDescription error")
+                            function(e) {
+                                Phono.log.error("remoteDescription sad "+JSON.stringify(e));
                             });
                 } else {
                     Phono.log.info('create offer with  ' + JSON.stringify(offerconstraints));
@@ -552,7 +553,7 @@ JSEPAudio.prototype.transport = function(config) {
                         remoteCandidates.push(candidate);
                         Phono.log.info('pushed candidate ' + candidate);
                     });
-                    if(!inboundOffer){
+                    if(haveRemoteDescription){
                         addRemoteCandidates();
                     } 
 
@@ -582,10 +583,12 @@ JSEPAudio.prototype.transport = function(config) {
                     Phono.log.info('Set remote description ' + JSON.stringify(sd));
                     pc.setRemoteDescription(sd,
                             function() {
+                                haveRemoteDescription = true;
+                                addRemoteCandidates();
                                 Phono.log.debug("remoteDescription happy");
                             },
-                            function() {
-                                Phono.log.error("remoteDescription sad")
+                            function(e) {
+                                Phono.log.error("remoteDescription sad "+JSON.stringify(e));
                             });
 
                 } else {

@@ -255,10 +255,18 @@
 
     _buildFingerprint = function(fingerObj) {
         var sdp = "a=fingerprint:" + fingerObj.hash + " " + fingerObj.print + "\r\n";
-        sdp +="a=setup:actpass\r\n";
         return sdp;
     }
 
+    _buildSetup = function(action) {
+        var sdp = "";
+        if (action == "session-initiate") {
+            sdp = "a=setup:actpass\r\n";
+        } else {
+            sdp = "a=setup:passive\r\n";
+        }
+        return sdp;
+    }
     _buildIce= function(ice) {
 	var sdp="";
         if (ice.ufrag) {
@@ -281,6 +289,9 @@
         if (sdpObj.ice) {
 	    sdp= sdp + _buildIce(sdpObj.ice);
         }
+        if (sdpObj.action) {
+            sdp= sdp+ _buildSetup(sdpObj.action);
+        }
         return sdp;
     }
 
@@ -297,6 +308,9 @@
         if (sdpObj.connection) {
             sdp = sdp + "c=" + sdpObj.connection.nettype + " " + sdpObj.connection.addrtype + " " +
                 sdpObj.connection.address + "\r\n";
+        } else {
+            // utterly content free line....
+            sdp = sdp + "c=IN IP4 0.0.0.0\r\n";
         }
         
         if (sdpObj.mid) {
@@ -307,6 +321,9 @@
             sdp = sdp + "a=rtcp:" + sdpObj.rtcp.port + " " + sdpObj.rtcp.nettype + " " + 
                 sdpObj.rtcp.addrtype + " " +
                 sdpObj.rtcp.address + "\r\n";
+        } else {
+            // more archane nonsense
+            sdp = sdp +"a=rtcp:1 IN IP4 0.0.0.0\r\n";
         }
         if (sdpObj.ice) {
 	    sdp= sdp + _buildIce(sdpObj.ice);
@@ -343,7 +360,9 @@
         if (sdpObj.fingerprint) {
             sdp = sdp + _buildFingerprint(sdpObj.fingerprint);
         }
- 
+        if (sdpObj.action) {
+            sdp= sdp+ _buildSetup(sdpObj.action);
+        }
         var cdi = 0;
         while (cdi + 1 <= sdpObj.codecs.length) {
             sdp = sdp + _buildCodec(sdpObj.codecs[cdi]);
@@ -490,11 +509,15 @@
         // Returns a js object representing the SDP
         parseJingle: function(jingle) {
             var blobObj = {};
+            var action;
 
             jingle.find('group').each(function () {
                 blobObj.group = {};
                 blobObj.group.type =  $(this).attr('type');
                 blobObj.group.contents = $(this).attr('contents').split(",");
+            });
+            jingle.find('jingle').each(function() {
+                action = $(this).attr('action');
             });
 
             blobObj.contents = [];
@@ -513,7 +536,7 @@
 		    var mediaType = $(this).attr('media');
                     mediaObj.type = mediaType;
                     mediaObj.proto = "RTP/SAVPF"; // HACK
-                    mediaObj.port = 1000;
+                    mediaObj.port = 1;
                     var ssrcObj = {};
                     if ($(this).attr('ssrc')) {
                         ssrcObj.ssrc = $(this).attr('ssrc');
@@ -558,6 +581,9 @@
                     fingerprint.print = Strophe.getText(this);
                     Phono.log.debug("fingerprint: "+JSON.stringify(fingerprint,null," "));
                     sdpObj.fingerprint = fingerprint;
+                    if (action){
+                        sdpObj.action = action;
+                    }
                 });
                 sdpObj.ice = {};
                 $(this).find('transport').each(function () {
@@ -735,7 +761,7 @@
                 var connection = contentsObj.connection;
                 sdp = sdp + "c=" + connection.nettype + " " + connection.addrtype + 
                     " " + connection.address + "\r\n";
-            }
+            } 
             if (contentsObj.group) {
                 var group = contentsObj.group;
                 sdp = sdp + "a=group:" + group.type;
