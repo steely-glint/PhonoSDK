@@ -255,16 +255,12 @@
 
     _buildFingerprint = function(fingerObj) {
         var sdp = "a=fingerprint:" + fingerObj.hash + " " + fingerObj.print + "\r\n";
+        sdp += "a=setup:"+fingerObj.setup+"\r\n";
         return sdp;
     }
 
-    _buildSetup = function(action) {
-        var sdp = "";
-        if (action == "session-initiate") {
-            sdp = "a=setup:actpass\r\n";
-        } else {
-            sdp = "a=setup:passive\r\n";
-        }
+    _buildSetup = function(verb) {
+        var sdp = "a=setup:"+verb+"\r\n";
         return sdp;
     }
     _buildIce= function(ice) {
@@ -289,15 +285,12 @@
         if (sdpObj.ice) {
 	    sdp= sdp + _buildIce(sdpObj.ice);
         }
-        if (sdpObj.action) {
-            sdp= sdp+ _buildSetup(sdpObj.action);
-        }
         return sdp;
     }
 
     _buildMedia =function(sdpObj) {
         var sdp ="";
-        sdp += "m=" + sdpObj.media.type + " " + sdpObj.media.port + " " + sdpObj.media.proto;
+        sdp += "m=" + sdpObj.media.type + " 1" /*+ sdpObj.media.port */+ " " + sdpObj.media.proto;
         var mi = 0;
         while (mi + 1 <= sdpObj.media.pts.length) {
             sdp = sdp + " " + sdpObj.media.pts[mi];
@@ -305,26 +298,26 @@
         }
         sdp = sdp + "\r\n";
         
-        if (sdpObj.connection) {
+        /*if (sdpObj.connection) {
             sdp = sdp + "c=" + sdpObj.connection.nettype + " " + sdpObj.connection.addrtype + " " +
                 sdpObj.connection.address + "\r\n";
-        } else {
+        } else { */
             // utterly content free line....
             sdp = sdp + "c=IN IP4 0.0.0.0\r\n";
-        }
+        //}
         
         if (sdpObj.mid) {
             sdp = sdp + "a=mid:" + sdpObj.mid + "\r\n";
         }
 
-        if (sdpObj.rtcp) {
+        /*if (sdpObj.rtcp) {
             sdp = sdp + "a=rtcp:" + sdpObj.rtcp.port + " " + sdpObj.rtcp.nettype + " " + 
                 sdpObj.rtcp.addrtype + " " +
                 sdpObj.rtcp.address + "\r\n";
-        } else {
+        } else {*/
             // more archane nonsense
             sdp = sdp +"a=rtcp:1 IN IP4 0.0.0.0\r\n";
-        }
+        //}
         if (sdpObj.ice) {
 	    sdp= sdp + _buildIce(sdpObj.ice);
         }
@@ -359,9 +352,6 @@
         }
         if (sdpObj.fingerprint) {
             sdp = sdp + _buildFingerprint(sdpObj.fingerprint);
-        }
-        if (sdpObj.action) {
-            sdp= sdp+ _buildSetup(sdpObj.action);
         }
         var cdi = 0;
         while (cdi + 1 <= sdpObj.codecs.length) {
@@ -496,6 +486,7 @@
                 if (fp){
                     c = c.c('fingerprint',{xmlns:"urn:xmpp:jingle:apps:dtls:0",
 				hash:fp.hash,
+                                setup:fp.setup,
                                 required:fp.required});
                     c.t(fp.print);
                     c.up();
@@ -715,7 +706,17 @@
                         break;
                     case "fingerprint":
                         var print = _parseFingerprint(a.params);
+                        if ((sdpObj.fingerprint) && (sdpObj.fingerprint.setup)){
+                            print.setup = sdpObj.fingerprint.setup;
+                        }
                         sdpObj.fingerprint = print;
+                        break;
+                    case "setup":
+                        if (sdpObj.fingerprint){
+                            sdpObj.fingerprint.setup=a.params[0];
+                        } else {
+                            sdpObj.fingerprint = {setup:a.params[0]};
+                        }
                         break;
                     case "crypto":
                         var crypto = _parseCrypto(a.params);
@@ -757,11 +758,11 @@
             sdp = sdp + "s=-\r\n" + 
                 "t=0 0\r\n";
 
-            if (contentsObj.connection) {
+            /*if (contentsObj.connection) {
                 var connection = contentsObj.connection;
                 sdp = sdp + "c=" + connection.nettype + " " + connection.addrtype + 
                     " " + connection.address + "\r\n";
-            } 
+            } */
             if (contentsObj.group) {
                 var group = contentsObj.group;
                 sdp = sdp + "a=group:" + group.type;

@@ -491,6 +491,22 @@ JSEPAudio.prototype.transport = function(config) {
             //pc.onstatechange = function (event) {Phono.log.info("onStateChange: "+pc.readyState); };
 
             Phono.log.debug("Adding localStream");
+            var mungeLocal = function(ldesc){
+                var sdpLines = ldesc.sdp.split('\r\n');
+                // remove a=rtcp:
+                for(var i = 0; i< sdpLines.length;i++){
+                    if (sdpLines[i].search("a=rtcp:")==0){
+                        sdpLines.splice(i, 1);
+                    }
+                    if (sdpLines[i].search("a=ice-options:google-ice")==0){
+                        sdpLines.splice(i, 1);
+                    }
+                }
+                return {
+                        'sdp': sdpLines.join('\r\n'),
+                        'type': ldesc.type
+                    };
+            }
 
             var cb2 = function() {
                 pc.addStream(JSEPAudio.localStream);
@@ -502,6 +518,7 @@ JSEPAudio.prototype.transport = function(config) {
                 };
 
                 var cb = function(localDesc) {
+                    //var nlocalDesc = mungeLocal(localDesc);
                     var sd = JSEPAudio.mkSessionDescription(localDesc);
                     pc.setLocalDescription(sd, setlok, setlfail);
                     window.setTimeout(function() {
@@ -545,8 +562,7 @@ JSEPAudio.prototype.transport = function(config) {
             Phono.log.info('Made remote sdp Obj' + JSON.stringify(sdpObj));
             sdpObj = JSEPAudio.stripCrypto(sdpObj);
             if (update) {
-                if (pc) {
-                    Phono.log.info('Updating transport for peer connection');
+                    Phono.log.info('Rcving transport info for peer connection');
                     var candys = sdpObj.contents[0].candidates;
                     Phono.util.each(candys, function() {
                         var candidate = Phono.sdp.buildCandidate(this);
@@ -556,10 +572,6 @@ JSEPAudio.prototype.transport = function(config) {
                     if(haveRemoteDescription){
                         addRemoteCandidates();
                     } 
-
-                } else {
-                     Phono.log.info('No PC to add candidates to');
-                }
             } else {
                 var sdp = Phono.sdp.buildSDP(sdpObj);
                 Phono.log.info('constructed remote sdp ' + JSON.stringify(sdp));
