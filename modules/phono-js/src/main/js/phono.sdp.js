@@ -92,6 +92,8 @@
             if (params[index] == "generation") candidate["generation"] = params[index+1];
             if (params[index] == "username") candidate["username"] = params[index+1];
             if (params[index] == "password") candidate["password"] = params[index+1];
+            if (params[index] == "raddr") candidate["raddr"] = params[index+1];
+            if (params[index] == "rport") candidate["rport"] = params[index+1];
 
             index += 2;
         }
@@ -198,11 +200,11 @@
             c.priority + " " +
             c.ip + " " +
             c.port;
-	if (c.type == "srflx") {
+	/*if (c.type == "srflx") {
            sdp = sdp + " typ host"; //+ c.type;
-	} else {
+	} else { */
            if (c.type) sdp = sdp +" typ "+  c.type;
-	}
+	/*}*/
         if (c.component == 1) sdp = sdp + " name rtp";
         if (c.component == 2) sdp = sdp + " name rtcp";
         sdp = sdp + " network_name en0";
@@ -218,6 +220,9 @@
             //sdp = sdp+ " username root password mysecret";// I know a secret
         }
         if (c.generation) sdp = sdp + " generation " + c.generation;
+        if (c.raddr) sdp = sdp + " raddr " + c.generation;
+        if (c.rport) sdp = sdp + " rport " + c.generation;
+
         sdp = sdp + "\r\n";
         return sdp;
     }

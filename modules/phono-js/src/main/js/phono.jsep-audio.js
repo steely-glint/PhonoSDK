@@ -429,7 +429,7 @@ JSEPAudio.prototype.transport = function(config) {
     var addRemoteCandidates = function() {
         var candidate;
         while (candidate = remoteCandidates.pop()) {
-            var rtice = new RTCIceCandidate({candidate: candidate});
+            var rtice = new RTCIceCandidate({candidate: candidate, sdpMLineIndex:1,sdpMid:"audio"});
             Phono.log.info("adding a remote ice candidate "+JSON.stringify(candidate));
             pc.addIceCandidate(rtice);
         }
@@ -442,8 +442,8 @@ JSEPAudio.prototype.transport = function(config) {
             JSEPAudio.pc = pc;
             var oic = function(evt) {
                 if (!complete) {
-                    if ((evt.candidate == null) ||
-                            (candidateCount >= 1 && !audio.config.media['video'] && direction == "answer")) {
+                    if ((evt.candidate == null) ){//||
+                            //(candidateCount >= 1 && !audio.config.media['video'] && direction == "answer")) {
                         Phono.log.info("All Ice candidates in ");
                         complete = true;
                         var sdp = pc.localDescription.sdp;
@@ -494,13 +494,12 @@ JSEPAudio.prototype.transport = function(config) {
             var mungeLocal = function(ldesc){
                 var sdpLines = ldesc.sdp.split('\r\n');
                 // remove a=rtcp:
+                var replacement = ["a=setup:active"];
                 for(var i = 0; i< sdpLines.length;i++){
-                    if (sdpLines[i].search("a=rtcp:")==0){
-                        sdpLines.splice(i, 1);
+                    if (sdpLines[i].search("a=setup:")==0){
+                        sdpLines.splice(i, 1,replacement);
                     }
-                    if (sdpLines[i].search("a=ice-options:google-ice")==0){
-                        sdpLines.splice(i, 1);
-                    }
+
                 }
                 return {
                         'sdp': sdpLines.join('\r\n'),
