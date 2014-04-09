@@ -442,27 +442,28 @@
                 }
 
                 // Raw candidates
-	        c = c.up().c('transport',{xmlns:"urn:xmpp:jingle:transports:raw-udp:1"});
-                c = c.c('candidate', {component:'1',
-                                      ip: sdpObj.connection.address,
-                                      port: sdpObj.media.port}).up();
-                if(sdpObj.rtcp) {
-                    c = c.c('candidate', {component:'2',
-                                      ip: sdpObj.rtcp.address,
-                                      port: sdpObj.rtcp.port}).up();
+                if (sdpObj.connection) {
+                    c = c.up().c('transport', {xmlns: "urn:xmpp:jingle:transports:raw-udp:1"});
+                    c = c.c('candidate', {component: '1',
+                        ip: sdpObj.connection.address,
+                        port: sdpObj.media.port}).up();
+                    if (sdpObj.rtcp) {
+                        c = c.c('candidate', {component: '2',
+                            ip: sdpObj.rtcp.address,
+                            port: sdpObj.rtcp.port}).up();
+                    }
+                    c = c.up();
                 }
-                c = c.up();
-
 		// 3 places we might find ice creds - in order of priority:
 		// candidate username
 		// media level icefrag
 		// session level icefrag
 		var iceObj = {};
-		if (sdpObj.candidates[0].username ){
+		if (sdpObj.candidates && sdpObj.candidates[0] && sdpObj.candidates[0].username ){
 			iceObj = {ufrag:sdpObj.candidates[0].username,pwd:sdpObj.candidates[0].password};
 		} else if ((sdpObj.ice) && (sdpObj.ice.ufrag)){
 			iceObj = sdpObj.ice;
-		} else if ((blob.session.ice) && (blob.session.ice.ufrag)){
+		} else if ((blob.session) && (blob.session.ice) && (blob.session.ice.ufrag)){
 			iceObj = blob.session.ice;
 		}
                 // Ice candidates
@@ -485,7 +486,7 @@
 		var fp = null;
 		if (sdpObj.fingerprint) {
 		    fp= sdpObj.fingerprint;
-		}else if(blob.session.fingerprint){
+		}else if((blob.session) && (blob.session.fingerprint)){
 		    fp = blob.session.fingerprint;
 		}
                 if (fp){
@@ -796,7 +797,8 @@
         // Return: an object representing the candidate in Jingle like constructs
         parseCandidate: function(candidateSDP) {
             var line = _parseLine(candidateSDP);
-            return _parseCandidate(line.contents);
+            var a = _parseA(line.contents);
+            return _parseCandidate(a.params);
         },
         
         // candidate: an object representing the body

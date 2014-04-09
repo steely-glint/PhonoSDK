@@ -391,9 +391,8 @@ JSEPAudio.prototype.transport = function(config) {
     var offerconstraints;
     var peerconstraints;
     var remoteContainerId;
-    var complete = false;
     var audio = this;
-    var candidateCount = 0;
+    var ccnt = 0;
     var remoteCandidates = [];
     var haveRemoteDescription = false;
 
@@ -440,34 +439,20 @@ JSEPAudio.prototype.transport = function(config) {
             Phono.log.info("made a peer connection");
             pc = JSEPAudio.mkPeerConnection(configuration, peerconstraints);
             JSEPAudio.pc = pc;
-            var oic = function(evt) {
-                if (!complete) {
-                    if ((evt.candidate == null) ){//||
-                            //(candidateCount >= 1 && !audio.config.media['video'] && direction == "answer")) {
-                        Phono.log.info("All Ice candidates in ");
-                        complete = true;
-                        var sdp = pc.localDescription.sdp;
-                        Phono.log.info('SDP ' + JSON.stringify(sdp));
-                        var sdpObj = Phono.sdp.parseSDP(sdp);
-                        Phono.log.info('SdpObj ' + JSON.stringify(sdpObj));
-                        Phono.sdp.buildJingle(j, sdpObj);
-                        var codecId = 0;
-                        if (sdpObj.contents[0].codecs[0].name == "telephone-event")
-                            codecId = 1;
-                        var codec =
-                                {
-                                    id: sdpObj.contents[0].codecs[codecId].id,
-                                    name: sdpObj.contents[0].codecs[codecId].name,
-                                    rate: sdpObj.contents[0].codecs[codecId].clockrate
-                                };
-                        callback(codec);
-                    } else {
-                        Phono.log.info("An Ice candidate ");
-                        candidateCount += 1;
-                    }
+            var oic = function(e) {
+                if ((e) && (e.candidate) && (e.candidate.candidate)) {    
+                    Phono.log.info('got a candidate ' + JSON.stringify(e.candidate.candidate));
+                    var candy = Phono.sdp.parseCandidate(e.candidate.candidate);
+                    candy.id = ccnt++;
+                    candy.network='0';
+                    u = u.c('candidate', candy).up();           
+                    //Phono.sdp.buildJingle(u, sob);
+                } else {
+                    Phono.log.info('not a candidate lets send an update' + JSON.stringify(e.candidate));
+                    updateCallback();
                 }
             };
-            pc.onicecandidate = oic;
+            pc.onicecandidate = function(message) {Phono.log.info("early onIceCandidate.");};
             //pc.onconnecting = function(message) {Phono.log.info("onSessionConnecting.");};
             //pc.onopen = function(message) {Phono.log.info("onSessionOpened.");};
             pc.onaddstream = function(event) {
@@ -513,6 +498,22 @@ JSEPAudio.prototype.transport = function(config) {
                     Phono.log.error('failed to setlocal ' + +JSON.stringify(e));
                 };
                 var setlok = function() {
+                    var sdp = pc.localDescription.sdp;
+                    Phono.log.info('SDP ' + JSON.stringify(sdp));
+                    var sdpObj = Phono.sdp.parseSDP(sdp);
+                    Phono.log.info('SdpObj ' + JSON.stringify(sdpObj));
+                    Phono.sdp.buildJingle(j, sdpObj);
+                    var codecId = 0;
+                    if (sdpObj.contents[0].codecs[0].name == "telephone-event")
+                        codecId = 1;
+                    var codec =
+                            {
+                                id: sdpObj.contents[0].codecs[codecId].id,
+                                name: sdpObj.contents[0].codecs[codecId].name,
+                                rate: sdpObj.contents[0].codecs[codecId].clockrate
+                            };
+                    callback(codec);
+                    pc.onicecandidate = oic;// later ice will have us send updates.
                     Phono.log.info('setlocal ok');
                 };
 
@@ -520,9 +521,7 @@ JSEPAudio.prototype.transport = function(config) {
                     //var nlocalDesc = mungeLocal(localDesc);
                     var sd = JSEPAudio.mkSessionDescription(localDesc);
                     pc.setLocalDescription(sd, setlok, setlfail);
-                    window.setTimeout(function() {
-                        oic({})
-                    }, 1000);
+                    
                     Phono.log.info('Set local description ' + JSON.stringify(localDesc));
                 };
                 var offerfail = function(e) {

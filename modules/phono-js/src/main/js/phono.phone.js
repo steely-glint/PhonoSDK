@@ -135,7 +135,7 @@
        
        var update = updateIq.c('jingle', {
            xmlns: NS.JINGLE,
-           action: "transport-accept",
+           action: "transport-info",
            initiator: call.initiator,
            sid: call.id
        });
@@ -239,14 +239,14 @@
       
        var update = updateIq.c('jingle', {
            xmlns: NS.JINGLE,
-           action: "transport-replace",
+           action: "transport-info",
            initiator: call.initiator,
            sid: call.id
        });
        
-       var partialUpdate = update
-           .c('content', {creator:"initiator"})
-           .c('description', {xmlns:this.transport.description})
+       var transportUpdate = update
+           .c('content', {creator:"initiator",name:"audio"})
+           .c('transport', {xmlns:"urn:xmpp:jingle:transports:ice-udp:1"});
        
        if (call.transport.description) {
            var accept = accept
@@ -301,7 +301,7 @@
                                              }
                                          });
                                      },
-                                     partialUpdate.up(),
+                                     transportUpdate,
                                      function() {
                                          call.connection.sendIQ(updateIq, function (iq) {
                                          });   
