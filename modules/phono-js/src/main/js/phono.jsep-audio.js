@@ -429,7 +429,7 @@ JSEPAudio.prototype.transport = function(config) {
     var addRemoteCandidates = function() {
         var candidate;
         while (candidate = remoteCandidates.pop()) {
-            var rtice = new RTCIceCandidate({candidate: candidate, sdpMLineIndex:1,sdpMid:"audio"});
+            var rtice = new RTCIceCandidate({candidate: candidate, sdpMLineIndex:0,sdpMid:"audio"});
             Phono.log.info("adding a remote ice candidate "+JSON.stringify(candidate));
             pc.addIceCandidate(rtice);
         }
