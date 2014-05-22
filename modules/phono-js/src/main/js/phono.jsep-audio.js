@@ -84,6 +84,7 @@ function JSEPAudio(phono, config, callback) {
     JSEPAudio.spk = 0.0;
     JSEPAudio.mic = 0.0;
     this.config = Phono.util.extend({
+        gatewayType: "tropo",
         media: {
             audio: true,
             video: false
@@ -396,6 +397,8 @@ JSEPAudio.prototype.transport = function(config) {
     var candidateCount = 0;
     var remoteCandidates = [];
     var haveRemoteDescription = false;
+    var dtlns = null ;
+    var localmunger = "none";
 
 
 
@@ -424,6 +427,14 @@ JSEPAudio.prototype.transport = function(config) {
     } else {
         remoteContainerId = config.remoteContainerId;
     }
+    if (this.config && this.config.gatewayType) {
+        if (this.config.gatewayType == "xep-0320"){
+            dtlns="urn:xmpp:jingle:apps:dtls:0";
+        }
+    }
+    if (this.config && this.config.localSettings) {
+        localmunger = this.config.localSettings;
+    }
 
     var remoteVideo = document.getElementById(remoteContainerId);
     var addRemoteCandidates = function() {
@@ -442,15 +453,15 @@ JSEPAudio.prototype.transport = function(config) {
             JSEPAudio.pc = pc;
             var oic = function(evt) {
                 if (!complete) {
-                    if ((evt.candidate == null) ){//||
-                            //(candidateCount >= 1 && !audio.config.media['video'] && direction == "answer")) {
+                    if ((evt.candidate == null)) {//||
+                        //(candidateCount >= 1 && !audio.config.media['video'] && direction == "answer")) {
                         Phono.log.info("All Ice candidates in ");
                         complete = true;
                         var sdp = pc.localDescription.sdp;
                         Phono.log.info('SDP ' + JSON.stringify(sdp));
                         var sdpObj = Phono.sdp.parseSDP(sdp);
                         Phono.log.info('SdpObj ' + JSON.stringify(sdpObj));
-                        Phono.sdp.buildJingle(j, sdpObj);
+                        Phono.sdp.buildJingle(j, sdpObj, dtlns);
                         var codecId = 0;
                         if (sdpObj.contents[0].codecs[0].name == "telephone-event")
                             codecId = 1;
@@ -491,20 +502,46 @@ JSEPAudio.prototype.transport = function(config) {
             //pc.onstatechange = function (event) {Phono.log.info("onStateChange: "+pc.readyState); };
 
             Phono.log.debug("Adding localStream");
-            var mungeLocal = function(ldesc){
-                var sdpLines = ldesc.sdp.split('\r\n');
-                // remove a=rtcp:
-                var replacement = ["a=setup:active"];
-                for(var i = 0; i< sdpLines.length;i++){
-                    if (sdpLines[i].search("a=setup:")==0){
-                        sdpLines.splice(i, 1,replacement);
-                    }
+            var mungeLocal = {
+                active: function(ldesc) {
+                    var sdpLines = ldesc.sdp.split('\r\n');
+                    // remove a=rtcp:
+                    var replacement = ["a=setup:active"];
+                    for (var i = 0; i < sdpLines.length; i++) {
+                        if (sdpLines[i].search("a=setup:") == 0) {
+                            sdpLines.splice(i, 1, replacement);
+                        }
 
-                }
-                return {
+                    }
+                    return {
                         'sdp': sdpLines.join('\r\n'),
                         'type': ldesc.type
                     };
+                },
+                none: function(ldesc) {
+                    return ldesc;
+                },
+                xlbw: function(ldesc) {
+                    var sdpLines = ldesc.sdp.split('\r\n');
+                    // set opus to low bw
+                    for (var i = 0; i < sdpLines.length; i++) {
+                        if (sdpLines[i].search("a=rtpmap:") == 0) {
+                            var bits = sdpLines[i].split(" ");
+                            if (bits[1].search("opus") == 0) {
+                                var num = bits[0].split(":")[1];
+                                var line = "a=fmtp:" + num + " minptime=50; maxaveragebitrate=8000;";
+                                sdpLines.splice(i, 0, [line]);
+                            }
+                        }
+                        if (sdpLines[i].search("a=ice-options:google-ice") == 0) {
+                            sdpLines.splice(i, 1);
+                        }
+                    }
+                    return {
+                        'sdp': sdpLines.join('\r\n'),
+                        'type': ldesc.type
+                    };
+                }
             }
 
             var cb2 = function() {
@@ -517,8 +554,8 @@ JSEPAudio.prototype.transport = function(config) {
                 };
 
                 var cb = function(localDesc) {
-                    //var nlocalDesc = mungeLocal(localDesc);
-                    var sd = JSEPAudio.mkSessionDescription(localDesc);
+                    var nlocalDesc = mungeLocal[localmunger](localDesc);
+                    var sd = JSEPAudio.mkSessionDescription(nlocalDesc);
                     pc.setLocalDescription(sd, setlok, setlfail);
                     window.setTimeout(function() {
                         oic({})
@@ -526,10 +563,10 @@ JSEPAudio.prototype.transport = function(config) {
                     Phono.log.info('Set local description ' + JSON.stringify(localDesc));
                 };
                 var offerfail = function(e) {
-                    Phono.log.error('failed to create offer '+JSON.stringify(e));
+                    Phono.log.error('failed to create offer ' + JSON.stringify(e));
                 };
                 var ansfail = function(e) {
-                    Phono.log.error('failed to create answer '+JSON.stringify(e));
+                    Phono.log.error('failed to create answer ' + JSON.stringify(e));
                 };
 
                 if (direction == "answer") {
@@ -542,7 +579,7 @@ JSEPAudio.prototype.transport = function(config) {
                                 addRemoteCandidates();
                             },
                             function(e) {
-                                Phono.log.error("remoteDescription sad "+JSON.stringify(e));
+                                Phono.log.error("remoteDescription sad " + JSON.stringify(e));
                             });
                 } else {
                     Phono.log.info('create offer with  ' + JSON.stringify(offerconstraints));
@@ -561,16 +598,16 @@ JSEPAudio.prototype.transport = function(config) {
             Phono.log.info('Made remote sdp Obj' + JSON.stringify(sdpObj));
             sdpObj = JSEPAudio.stripCrypto(sdpObj);
             if (update) {
-                    Phono.log.info('Rcving transport info for peer connection');
-                    var candys = sdpObj.contents[0].candidates;
-                    Phono.util.each(candys, function() {
-                        var candidate = Phono.sdp.buildCandidate(this);
-                        remoteCandidates.push(candidate);
-                        Phono.log.info('pushed candidate ' + candidate);
-                    });
-                    if(haveRemoteDescription){
-                        addRemoteCandidates();
-                    } 
+                Phono.log.info('Rcving transport info for peer connection');
+                var candys = sdpObj.contents[0].candidates;
+                Phono.util.each(candys, function() {
+                    var candidate = Phono.sdp.buildCandidate(this);
+                    remoteCandidates.push(candidate);
+                    Phono.log.info('pushed candidate ' + candidate);
+                });
+                if (haveRemoteDescription) {
+                    addRemoteCandidates();
+                }
             } else {
                 var sdp = Phono.sdp.buildSDP(sdpObj);
                 Phono.log.info('constructed remote sdp ' + JSON.stringify(sdp));
@@ -599,7 +636,7 @@ JSEPAudio.prototype.transport = function(config) {
                                 Phono.log.debug("remoteDescription happy");
                             },
                             function(e) {
-                                Phono.log.error("remoteDescription sad "+JSON.stringify(e));
+                                Phono.log.error("remoteDescription sad " + JSON.stringify(e));
                             });
 
                 } else {

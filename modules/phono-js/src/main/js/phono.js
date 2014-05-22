@@ -326,11 +326,9 @@ function Phono(config) {
 
     // ======================================================================
 
-    //@Include=flXHR.js
     //@Include=strophe.js   
     //@Include=strophe.cors.js
     //@Include=phono.events.js
-    //@Include=flashembed.min.js
     //@Include=$phono-audio
     //@Include=phono.messaging.js
     //@Include=phono.sdp.js

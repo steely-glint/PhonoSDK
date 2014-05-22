@@ -1,3 +1,0 @@
-The sourcecode for this project is in ../phono-java-audio/src
-it is selectively copied to copysrc by the local build.xml
-then deleted after the compile.

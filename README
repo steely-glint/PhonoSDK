@@ -1,3 +1,24 @@
+This is a Fork of the PhonoSDK, it aims to be faster moving than the
+Tropo version. 
+Specifically:
+	Deleting all Flash and java applet support - which simplifies the code,
+		and speeds up the download.
+	Adding initial support for Openfire as an xmpp server
+	Adding experimental support for asterisk as a sip/pstn gateway
+	Adding modes for extra low bandwidth
+Generally:
+	Adding what ever features suit me and my paying customers ;-)
+Longer term:
+	Splitting out the native client code into their own repos.
+	Dumping the out-of-date phonegap code.
+	Adding different transports instead of long-poll BOSH.
+	Adding some sort of support for IE.
+
+We aim to remain compatible with the PhonoGateways for webRTC .
+
+---- Original README follows -------
+
+
 The Phono SDK provides an object-oriented JavaScript API for embedding
 two-way audio and chat onto any web page. The Phono SDK is a pure
 client-side solution and requires zero server-side logic on your part;

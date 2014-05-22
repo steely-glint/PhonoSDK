@@ -1,4 +1,4 @@
-<project name="phono" default="build-default">
+<project name="phono" default="build-desktop">
 
   <property file="build.properties" />
 
@@ -27,8 +27,6 @@
   
   <!-- Device Targets -->
   <target name="build-desktop">
-    <antcall target="build-as-audio" />
-    <antcall target="build-java-audio" />
     <antcall target="build-native-java" />
     <antcall target="build-js" />
   </target>
@@ -38,23 +36,11 @@
   </target>
 
   <!-- Modules -->
-  <target name="build-as-audio">
-		<ant inheritAll="true" target="build" dir="modules/phono-as-audio" />
-  </target>
-  <target name="build-java-audio">
-		<ant inheritAll="true" target="build" dir="modules/phono-java-audio" />
-  </target>
   <target name="build-js">
 		<ant inheritAll="true" target="build" dir="modules/phono-js" />
   </target>
   <target name="build-native-ios">
 		<ant inheritAll="true" target="build" dir="modules/phono-ios" />
-  </target>
-  <target name="build-phonegap-ios">
-		<ant inheritAll="true" target="build" dir="modules/phono-phonegap-ios" />
-  </target>
-  <target name="build-phonegap-android">
-		<ant inheritAll="true" target="build" dir="modules/phono-phonegap-android" />
   </target>
   <target name="build-native-java">
 		<ant inheritAll="true" target="build" dir="modules/phono-java" />

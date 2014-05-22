@@ -260,14 +260,12 @@
 
     _buildFingerprint = function(fingerObj) {
         var sdp = "a=fingerprint:" + fingerObj.hash + " " + fingerObj.print + "\r\n";
-        sdp += "a=setup:"+fingerObj.setup+"\r\n";
+        if (fingerObj.setup) {
+            sdp += "a=setup:"+fingerObj.setup+"\r\n";
+        } 
         return sdp;
     }
 
-    _buildSetup = function(verb) {
-        var sdp = "a=setup:"+verb+"\r\n";
-        return sdp;
-    }
     _buildIce= function(ice) {
 	var sdp="";
         if (ice.ufrag) {
@@ -394,8 +392,11 @@
 
         // jingle: A container to place the output jingle in
         // blob: A js object representing the input SDP
-        buildJingle: function(jingle, blob) {
+        buildJingle: function(jingle, blob,dtlsns) {
             var description = "urn:xmpp:jingle:apps:rtp:1";
+            if (dtlsns === null){
+                dtlsns = "urn:xmpp:tmp:jingle:apps:dtls:0";
+            }
             var c = jingle;
             if (blob.group) {
                 var bundle = "";
@@ -489,9 +490,9 @@
 		    fp = blob.session.fingerprint;
 		}
                 if (fp){
-                    c = c.c('fingerprint',{xmlns:"urn:xmpp:jingle:apps:dtls:0",
+                    c = c.c('fingerprint',{xmlns:dtlsns,
 				hash:fp.hash,
-                                setup:fp.setup,
+                                setup:fp.setup, 
                                 required:fp.required});
                     c.t(fp.print);
                     c.up();
@@ -713,7 +714,7 @@
                         var print = _parseFingerprint(a.params);
                         if ((sdpObj.fingerprint) && (sdpObj.fingerprint.setup)){
                             print.setup = sdpObj.fingerprint.setup;
-                        }
+                        } 
                         sdpObj.fingerprint = print;
                         break;
                     case "setup":

@@ -22,20 +22,12 @@
  *
  */
 
-//@Include=FABridge.js
 
 var flensed;
 
 (function($) {
 
     //@Include=../../../../../build/phono.config.js
-
-    if (typeof phonoFlensedOverride != 'undefined') {
-        flensed = phonoFlensedOverride;
-    } else {
-        flensed = {base_path:"//" + Phono.cdnUrl + "/deps/flensed/1.0/"};
-    }
-    
     //@Include=$phono-core
    
    $.phono = function(config) {
