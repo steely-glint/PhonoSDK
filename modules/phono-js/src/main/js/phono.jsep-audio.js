@@ -108,14 +108,7 @@ function JSEPAudio(phono, config, callback) {
 JSEPAudio.exists = function() {
     if (typeof webkitRTCPeerConnection == "function")
         return true;
-    if (typeof mozRTCPeerConnection == "function") {
-        try {
-            mozRTCPeerConnection();
-        } catch (err) {
-            return false;
-        }
-        return true;
-    }
+    if (typeof mozRTCPeerConnection == "function") return true;
 }
 
 JSEPAudio.prototype.getCaps = function(c) {
@@ -535,6 +528,19 @@ JSEPAudio.prototype.transport = function(config) {
                         }
                         if (sdpLines[i].search("a=ice-options:google-ice") == 0) {
                             sdpLines.splice(i, 1);
+                        }
+                    }
+                    return {
+                        'sdp': sdpLines.join('\r\n'),
+                        'type': ldesc.type
+                    };
+                },
+                lbv: function(ldesc) {
+                    var sdpLines = ldesc.sdp.split('\r\n');
+                    for (var i = 0; i < sdpLines.length; i++) {
+                        if (sdpLines[i].search("a=mid:video") == 0) {
+                            var line = "b=AS:256" ;
+                            sdpLines.splice(i, 0, [line]);
                         }
                     }
                     return {
