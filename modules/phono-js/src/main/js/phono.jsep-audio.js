@@ -515,6 +515,7 @@ JSEPAudio.prototype.transport = function(config) {
                     return ldesc;
                 },
                 xlbw: function(ldesc) {
+                    // not clear this is correct....
                     var sdpLines = ldesc.sdp.split('\r\n');
                     // set opus to low bw
                     for (var i = 0; i < sdpLines.length; i++) {
@@ -540,7 +541,8 @@ JSEPAudio.prototype.transport = function(config) {
                     for (var i = 0; i < sdpLines.length; i++) {
                         if (sdpLines[i].search("a=mid:video") == 0) {
                             var line = "b=AS:256" ;
-                            sdpLines.splice(i, 0, [line]);
+                            i++;
+                            sdpLines.splice(i, 0, line);
                         }
                     }
                     return {

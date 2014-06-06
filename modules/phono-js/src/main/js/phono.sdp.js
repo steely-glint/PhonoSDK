@@ -18,7 +18,13 @@
             params: attribute.substring(attribute.indexOf(":")+1).split(" ")
         }
     }
-
+    _parseB = function(attribute) {
+        var s1 = attribute.split(":");
+        return {
+            rule: s1[0],
+            val: s1[1]
+        }
+    }
     _parseM = function(media) {
         var s1 = media.split(" ");
         return {
@@ -312,6 +318,9 @@
         if (sdpObj.mid) {
             sdp = sdp + "a=mid:" + sdpObj.mid + "\r\n";
         }
+        if (sdpObj.maxbw){
+            sdp = sdp + "b=AS:" + sdpObj.maxbw + "\r\n";
+        }
 
         /*if (sdpObj.rtcp) {
             sdp = sdp + "a=rtcp:" + sdpObj.rtcp.port + " " + sdpObj.rtcp.nettype + " " + 
@@ -469,10 +478,15 @@
                 // Ice candidates
                 var transp = {xmlns:"urn:xmpp:jingle:transports:ice-udp:1",
                              pwd: iceObj.pwd,
-                             ufrag: iceObj.ufrag};
+                             ufrag: iceObj.ufrag
+                             };
+                if (sdpObj.maxbw){
+                    transp.maxbw = sdpObj.maxbw;
+                } 
                 if (iceObj.options) {
                     transp.options = iceObj.options;
                 }
+                // add b=  here
 	        c = c.c('transport',transp);
                 var ccnt = 1;
                 Phono.util.each(sdpObj.candidates, function() {
@@ -607,6 +621,9 @@
                     if ($(this).attr('xmlns') == "urn:xmpp:jingle:transports:ice-udp:1") {
                         sdpObj.ice.pwd = $(this).attr('pwd');
                         sdpObj.ice.ufrag = $(this).attr('ufrag');
+                        if ($(this).attr('maxbw')){
+                            sdpObj.maxbw = $(this).attr('maxbw');   
+                        }
                         if ($(this).attr('options')) {
                             sdpObj.ice.options = $(this).attr('options');
                         }
@@ -666,6 +683,14 @@
                         sdpObj.connection = _parseC(line.contents);
                     } else {
                         contentsObj.connection = _parseC(line.contents);
+                    }
+                }
+                if (line.type == "b") {
+                    var b = _parseB(line.contents);
+                    Phono.log.debug("got B line "+b.rule+" = "+b.val);
+                    if (b.rule == "AS"){
+                        sdpObj.maxbw = b.val;
+                        Phono.log.debug("setting maxbw to "+b.val);
                     }
                 }
                 if (line.type == "a") {
