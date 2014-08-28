@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+  <head>
+    <title>Free short calls to US and UK numbers.</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style type="text/css">
+    <!--
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+    }
+    td img {
+        display: block;
+    }
+    img {
+        border: none;
+    }
+    -->
+    </style>
+    <script src="http://code.jquery.com/jquery-1.8.3.js"></script>
+    <script src="script/strophe.js"></script>
+    <script src="script/jquery.phono.js"></script>
+    <script src="script/phone.js" type="text/javascript">&nbsp;</script>
+  </head>
+  <body bgcolor="white">
+  <form action="javascript:void()">
+    <table style="width: 302px;" border="0" cellpadding="0" cellspacing="0">
+      <tr>
+        <td colspan="3">
+            <img src="image/top.jpg" alt="Top" />
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <img src="image/left.jpg" alt="Left" />
+        </td>
+        <td width="158">
+          <table border="0" cellpadding="0" cellspacing="0">
+            <tr>
+              <td id="MessageBar">Ready to Dial</td>
+            </tr>
+            <tr>
+              <td id="NumberBar"></td>
+            </tr>
+          </table>
+        </td>
+        <td >
+          <img src="image/right.jpg" alt="Right" />
+        </td>
+      </tr>
+      <tr>
+        <td colspan="3">
+          <img src="image/keypad.jpg" alt="keypad" align="top" usemap="#tphone_r2_c3MapMap" />
+        </td>
+      </tr>
+    </table>
+
+    <map name="tphone_r2_c3MapMap">
+      <area shape="poly" coords="94,169,127,169,137,175,138,186,131,194,123,196,95,197,86,187,88,176" href="javascript:buttonPressed('*');" />
+      <area shape="poly" coords="153,169,186,169,196,175,197,186,190,194,182,196,154,197,145,187,147,176" href="javascript:buttonPressed('0');" />
+      <area shape="poly" coords="212,169,245,169,255,175,256,186,249,194,241,196,213,197,204,187,206,176" href="javascript:buttonPressed('#');" />
+      <area shape="poly" coords="94,137,127,137,137,143,138,154,131,162,123,164,95,165,86,155,88,144" href="javascript:buttonPressed('7');" />
+      <area shape="poly" coords="153,137,186,137,196,143,197,154,190,162,182,164,154,165,145,155,147,144" href="javascript:buttonPressed('8');" />
+      <area shape="poly" coords="212,137,245,137,255,143,256,154,249,162,241,164,213,165,203,155,205,141" href="javascript:buttonPressed('9');" />
+      <area shape="poly" coords="94,105,127,105,137,111,138,122,131,130,123,132,95,133,86,123,88,112" href="javascript:buttonPressed('4');" />
+      <area shape="poly" coords="153,105,186,105,196,111,197,122,190,130,182,132,154,133,145,123,147,112" href="javascript:buttonPressed('5');" />
+      <area shape="poly" coords="212,105,245,105,255,111,256,122,249,130,241,132,213,133,204,123,206,112" href="javascript:buttonPressed('6');" />
+      <area shape="poly" coords="94,73,127,73,137,79,138,90,131,98,123,100,95,101,86,91,88,80" href="javascript:buttonPressed('1');" />
+      <area shape="poly" coords="153,73,186,73,196,79,197,90,190,98,182,100,154,101,145,91,147,80" href="javascript:buttonPressed('2');" />
+      <area shape="poly" coords="187,24,212,23,234,23,247,29,254,41,253,56,241,65,190,65,179,58,174,46,178,33" href="javascript:redButtonPressed();" />
+      <area shape="poly" coords="100,25,125,24,147,24,160,30,167,42,163,57,154,66,103,66,92,59,87,47,91,34" href="javascript:greenButtonPressed();" />
+      <area shape="poly" coords="212,73,245,73,255,79,256,90,249,98,241,100,213,101,204,91,206,80" href="javascript:buttonPressed('3');" />
+    </map>
+
+    <!--
+    -->
+
+  </form> 
+  </body>
+</html>
