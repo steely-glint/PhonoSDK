@@ -14,7 +14,7 @@
   <target name="applet" depends="clean">
     <mkdir dir="target"/>
     <mkdir dir="build/applet/classes"/>
-    <javac destdir="build/applet/classes" classpathref="classpath" target="1.5">
+    <javac destdir="build/applet/classes" classpathref="classpath" target="1.8">
             <src path="src" />
             <exclude name="java/com/phono/android/**"/>
     </javac>
@@ -23,8 +23,8 @@
       <zipfileset src="${srtplightlib.dir}/srtplight.jar"/>
     </jar>
 
-    <signjar jar="target/phono.audio.jar"
-             alias="phono" storepass="phonorocks" keystore="keys/phonokeys"/>
+    <!--signjar jar="target/phono.audio.jar"
+             alias="phono" storepass="phonorocks" keystore="keys/phonokeys"/-->
     
   </target>
   
