@@ -43,7 +43,7 @@ public class Share {
 
         for (Codec c : codecs) {
             Log.debug("Codec name " + c.name);
-            if ("g722".equals(c.name)) {
+            if ("PCMU".equals(c.name)) {
                 codec = c;
                 break;
             }
@@ -77,7 +77,7 @@ public class Share {
         _deviceList = bret.toString();
 //	Log.debug("audio list is :"+_deviceList);
         _audio = new PhonoAudioShim();
-        _audio.setAudioProperty(PhonoAudioPropNames.DOEC, "false");
+        //_audio.setAudioProperty(PhonoAudioPropNames.DOEC, "false");
         _codecList = new CodecList(_audio);
 
         // Call the callback that we have been given to say we are ready
