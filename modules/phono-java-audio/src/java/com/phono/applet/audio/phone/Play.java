@@ -40,6 +40,7 @@ public class Play implements PlayFace {
     Player _play;
     Thread _playThread;
     private float _gain;
+    private boolean _once;
 
     public Play(String suburi) {
 
@@ -130,6 +131,9 @@ public class Play implements PlayFace {
 		if (_playThread != null) {
                  	_play.play();
 		}
+                if (_once){
+                    break;
+                }
             }
         } catch (Exception ex) {
             Log.error(ex.toString());
@@ -154,20 +158,16 @@ public class Play implements PlayFace {
         }
     }
 
-    public static void main(String[] argv) {
+    public static void main(String[] argv) throws InterruptedException {
         // test harness.
         Log.setLevel(Log.ALL);
-        Play testPlay = new Play("http://s.phono.com/ringtones/Diggztone_Marimba.mp3");
+        Play testPlay = new Play(argv[0]);
+        testPlay.setOnce(true);
         testPlay.start();
-        for (int s = 0; s < 60; s++) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ex) {
-                ;
-            }
-            System.out.print("Playing " + s + "\r");
-        }
-        System.out.println("\nDone.");
-        testPlay.stop();
+        testPlay._playThread.join(60000);
+    }
+
+    private void setOnce(boolean b) {
+        _once = b;
     }
 }

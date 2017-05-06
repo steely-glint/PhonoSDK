@@ -35,7 +35,14 @@ public class RTPAudioSession implements RTPDataSink, AudioReceiver {
     AudioFace _audio;
     private boolean _first = true;
     int _ptype;
-
+    private long _then;
+    private boolean _doNTP;
+    public RTPAudioSession(DatagramSocket near, InetSocketAddress far, int type, AudioFace a, Properties lsrtpProps, Properties rsrtpProps,long csrc) {
+        this(near,far,type,a,lsrtpProps,rsrtpProps);
+        if (_sps instanceof SRTPProtocolImpl){
+            ((SRTPProtocolImpl)_sps).setSSRC(csrc);
+        }
+    }
     public RTPAudioSession(DatagramSocket near, InetSocketAddress far, int type, AudioFace a, Properties lsrtpProps, Properties rsrtpProps) {
         _sps = mkSps(near, far, type, a, lsrtpProps, rsrtpProps);
         _sps.setRTPDataSink(this);
@@ -114,18 +121,53 @@ public class RTPAudioSession implements RTPDataSink, AudioReceiver {
             Log.error(ex.toString());
         }
     }
+// lifted from org.apache.commons.net.ntp.TimeStamp - with apache 2.0 license
+    /**
+     * baseline NTP time if bit-0=0 -> 7-Feb-2036 @ 06:28:16 UTC
+     */
+    protected static final long msb0baseTime = 2085978496000L;
 
+    /**
+     * baseline NTP time if bit-0=1 -> 1-Jan-1900 @ 01:00:00 UTC
+     */
+    protected static final long msb1baseTime = -2208988800000L;
+
+    protected static long toNtpTime(long t) {
+        boolean useBase1 = t < msb0baseTime;    // time < Feb-2036
+        long baseTime;
+        if (useBase1) {
+            baseTime = t - msb1baseTime; // dates <= Feb-2036
+        } else {
+            // if base0 needed for dates >= Feb-2036
+            baseTime = t - msb0baseTime;
+        }
+
+        long seconds = baseTime / 1000;
+        long fraction = ((baseTime % 1000) * 0x100000000L) / 1000;
+
+        if (useBase1) {
+            seconds |= 0x80000000L; // set high-order bit if msb1baseTime 1900 used
+        }
+
+        long time = seconds << 32 | fraction;
+        return time;
+    }
+// end apache 2.0 
+    
     public void newAudioDataReady(AudioFace af, int i) {
 
         if (_first) {
             _sps.startrecv();
             _first = false;
+            _then = System.currentTimeMillis();
         }
         try {
             StampedAudio sa = af.readStampedAudio();
             while (sa != null) {
                 int fac = CodecList.getFac(af.getCodec());
-                _sps.sendPacket(sa.getData(), sa.getStamp() * fac, _ptype);
+                long dur = sa.getStamp();
+                long ts = _doNTP?toNtpTime(_then+dur):dur*fac;
+                _sps.sendPacket(sa.getData(),ts , _ptype);
                 //Log.debug("send "+ sa.getStamp() * fac);
                 sa = af.readStampedAudio();
             }
@@ -164,5 +206,8 @@ public class RTPAudioSession implements RTPDataSink, AudioReceiver {
             }
         }
         return ret;
+    }
+    public void setNTP(boolean d){
+        _doNTP = d;
     }
 }
