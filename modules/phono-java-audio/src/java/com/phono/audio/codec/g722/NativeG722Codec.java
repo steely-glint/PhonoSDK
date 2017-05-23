@@ -88,7 +88,7 @@ public class NativeG722Codec implements CodecFace, EncoderFace, DecoderFace {
     }
 
    
-    public short[] decode_frame(byte[] bytes) {
+    public short[] decode_frame(byte[] bytes,boolean fec) {
         g722Decode(_codec, bytes, _adataOut);
         return _adataOut;
     }

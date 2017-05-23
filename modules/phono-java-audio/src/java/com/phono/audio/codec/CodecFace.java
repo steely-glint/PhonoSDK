@@ -111,9 +111,9 @@ public interface CodecFace {
     /** SpeeX Wideband (16kHz) Free Compression */
     public final static long AUDIO_SPEEX16 = (1L << 33);
     /** silk Narrowband (16kHz) */
-    public final static long AUDIO_SILK8 = (1L << 34);
+    public final static long AUDIO_OPUS = (1L << 34);
     /** silk Wideband (16kHz) */
-    public final static long AUDIO_SILK16 = (1L << 35);
+    public final static long AUDIO_SILK = (1L << 35);
     /*! Raw mu-law data (G.711) */
     public final static long AUDIO_TESTLAW = (1L << 47);
     /*! Reserved bit - do not use */
@@ -157,8 +157,8 @@ public interface CodecFace {
         "UNKNOWN_FORMAT",
         "AUDIO_G719",
         "AUDIO_SPEEX16",
-        "AUDIO_SILK8",
-        "AUDIO_SILK16"
+        "AUDIO_OUPS",
+        "AUDIO_SILK"
     };
 
     /**

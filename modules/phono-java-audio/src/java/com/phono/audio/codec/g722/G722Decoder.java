@@ -270,7 +270,7 @@ public class G722Decoder implements DecoderFace {
         return outlen;
     }
 
-    public short[] decode_frame(byte[] encoded_signal) {
+    public short[] decode_frame(byte[] encoded_signal,boolean fec) {
         short[] ret = new short[_audioSz];
         int l = g722_decode(ret, encoded_signal);
         Log.verb("722 decode of "+encoded_signal.length

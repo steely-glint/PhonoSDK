@@ -81,7 +81,7 @@ public class SLin_Codec implements CodecFace, DecoderFace, EncoderFace {
         return buf.toString();
     }
 
-    public short[] decode_frame(byte encoded_signal[]) {
+    public short[] decode_frame(byte encoded_signal[],boolean fec) {
         short[] output = CodecUtil.bytesToShorts(encoded_signal); 
         return output;
     }

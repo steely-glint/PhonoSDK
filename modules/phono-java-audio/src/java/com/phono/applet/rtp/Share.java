@@ -43,7 +43,7 @@ public class Share {
 
         for (Codec c : codecs) {
             Log.debug("Codec name " + c.name);
-            if ("PCMU".equals(c.name)) {
+            if ("OPUS".equals(c.name)) {
                 codec = c;
                 break;
             }

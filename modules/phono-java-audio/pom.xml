@@ -14,7 +14,7 @@
         <dependency>
             <groupId>com.phono</groupId>
             <artifactId>srtplight</artifactId>
-            <version>1.0</version>
+            <version>1.1</version>
         </dependency>
 <!-- https://mvnrepository.com/artifact/javazoom/jlayer -->
 <dependency>
@@ -34,6 +34,7 @@
                     <target>1.8</target>
             <excludes>
               <exclude>com/phono/android/**</exclude>
+              <exclude>com/phono/applet/rtp/RTPApplet.java</exclude>
             </excludes>
                 </configuration>
             </plugin>

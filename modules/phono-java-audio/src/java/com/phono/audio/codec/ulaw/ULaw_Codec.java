@@ -90,7 +90,7 @@ public class ULaw_Codec implements CodecFace, DecoderFace, EncoderFace {
         return buf.toString();
     }
     
-    public short[] decode_frame(byte encoded_signal[]) {
+    public short[] decode_frame(byte encoded_signal[],boolean fec) {
         int len = encoded_signal.length;
         short[] output = new short[len];
         for (int i = 0; i < len; i++) {

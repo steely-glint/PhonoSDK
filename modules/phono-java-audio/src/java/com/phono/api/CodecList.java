@@ -29,6 +29,7 @@ public class CodecList {
     final public static int DTMFPAYLOADTTYPE = 101;
     private static long phonoPrefOrder[] = {
         CodecFace.AUDIO_SPEEX16,
+        CodecFace.AUDIO_OPUS,
         CodecFace.AUDIO_SPEEX,
         CodecFace.AUDIO_G722,
         CodecFace.AUDIO_ULAW,
@@ -82,6 +83,9 @@ public class CodecList {
         if (iaxcn == CodecFace.AUDIO_SPEEX16) {
             ret = new Integer(103);
         }
+        if (iaxcn == CodecFace.AUDIO_OPUS) {
+            ret = new Integer(104);
+        }
         if (iaxcn == CodecFace.AUDIO_SPEEX) {
             ret = new Integer(102);
         }
@@ -108,6 +112,9 @@ public class CodecList {
      */
     public static int getFac(long iaxcn) {
         int ret = 8; // sensible default.
+        if (iaxcn == CodecFace.AUDIO_OPUS) {
+            ret = 48;
+        }
         if (iaxcn == CodecFace.AUDIO_SPEEX16) {
             ret = 16;
         }

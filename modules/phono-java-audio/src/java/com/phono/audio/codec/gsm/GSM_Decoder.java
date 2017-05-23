@@ -64,7 +64,7 @@ public class GSM_Decoder extends GSM_Base implements DecoderFace {
     }
     
     // byte input[] = new byte[33];
-    public short[] decode_frame(byte input[]) {
+    public short[] decode_frame(byte input[],boolean fec) {
         getCodedParams(input);
         
         short srop[] = decode_params();

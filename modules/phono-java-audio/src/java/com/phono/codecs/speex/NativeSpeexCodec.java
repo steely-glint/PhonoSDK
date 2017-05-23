@@ -106,7 +106,7 @@ public class NativeSpeexCodec implements CodecFace, EncoderFace, DecoderFace {
         return speexEncode(_codec, audio);
     }
 
-    public short[] decode_frame(byte[] bytes) {
+    public short[] decode_frame(byte[] bytes,boolean fec) {
         speexDecode(_codec, bytes, _adataOut);
         return _adataOut;
     }

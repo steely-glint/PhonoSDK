@@ -535,8 +535,10 @@ public class PhonoAudio implements AudioFace {
         _timestampPlay = stampedAudio.getStamp();
         Log.verb("PhonoAudio.orderedWrite(): Wrote packet to audio timestamp=" + _timestampPlay + " len =" + dlen);
     }
-
     private int writeBuff(int flen, int offs, byte[] bs) throws AudioException {
+        return writeBuff(flen,  offs,  bs, false);
+    }
+    private int writeBuff(int flen, int offs, byte[] bs,boolean fec) throws AudioException {
         int av = _play.available();
         int olen = 0;
         // variable length - have to assume that it is a whole packet
@@ -544,7 +546,7 @@ public class PhonoAudio implements AudioFace {
         while ((flen >= cfs) && (flen > 0)) {
             byte[] ebuff = (_encodedbuffPlay != null) ? _encodedbuffPlay : new byte[flen];
             System.arraycopy(bs, offs, ebuff, 0, cfs);
-            short[] sframe = _decode.decode_frame(ebuff);
+            short[] sframe = _decode.decode_frame(ebuff,fec);
             int dlen = 0;
             if (sframe != null) {
                 int trimmed = 0;

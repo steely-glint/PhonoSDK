@@ -100,7 +100,7 @@ public class SpeexCodec implements CodecFace, EncoderFace, DecoderFace {
         return wireOut;
     }
 
-    public short[] decode_frame(byte[] bytes) {
+    public short[] decode_frame(byte[] bytes,boolean fec) {
         try {
             _spxd.processData(bytes, 0, bytes.length);
         } catch (StreamCorruptedException ex) {
