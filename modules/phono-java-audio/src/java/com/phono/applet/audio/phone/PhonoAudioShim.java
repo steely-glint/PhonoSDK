@@ -443,4 +443,10 @@ public class PhonoAudioShim extends EsupPhonoAudio {
         }
         super.initMic(pref);
     }
+    
+    public static void main (String []argv){
+        StringBuffer sb = new StringBuffer("");
+        PhonoAudioShim.getMixersJSON(sb);
+        System.out.println(sb);
+    }
 }
