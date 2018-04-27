@@ -90,7 +90,6 @@ private final static int OPUS_GET_SAMPLE_RATE_REQUEST = 4029;
     public static boolean loadLib(String fullPathToLib) {
         if (!__loaded) {
             if (fullPathToLib == null) {
-                System.loadLibrary("opus");
                 System.loadLibrary("phono-opus");
                 __loaded = true;
             } else {
