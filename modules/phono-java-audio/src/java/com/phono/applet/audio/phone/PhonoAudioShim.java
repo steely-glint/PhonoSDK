@@ -32,6 +32,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -318,7 +320,7 @@ public class PhonoAudioShim extends EsupPhonoAudio {
 
     public static void getMixersJSON(StringBuffer sb) {
         Mixer.Info[] mixI = AudioSystem.getMixerInfo();
-        sb.append("mixers").append(" : ").append(" [ \n");
+        sb.append("\"mixers\"").append(" : ").append(" [ \n");
         for (int i = 0; i < mixI.length; i++) {
             Mixer.Info mi = mixI[i];
             Log.debug("Mixer " + mi.getName() + " vendor " + mi.getVendor());
@@ -327,9 +329,9 @@ public class PhonoAudioShim extends EsupPhonoAudio {
                 sb.append(",");
             }
             sb.append("{\n");
-            sb.append("audioclass : ").append('"').append(mi.getClass().getName()).append('"').append("\n,");
-            sb.append("name : ").append('"').append(mi.getName().trim()).append('"').append("\n,");
-            sb.append("vendor : ").append('"').append(mi.getVendor()).append('"').append("\n,");
+            sb.append("\"audioclass\" : ").append('"').append(mi.getClass().getName()).append('"').append("\n,");
+            sb.append("\"name\" : ").append('"').append(mi.getName().trim()).append('"').append("\n,");
+            sb.append("\"vendor\" : ").append('"').append(mi.getVendor()).append('"').append("\n,");
             Mixer m = AudioSystem.getMixer(mi);
             getMixerLinesJSON(sb, m);
             sb.append("}\n");
@@ -345,7 +347,7 @@ public class PhonoAudioShim extends EsupPhonoAudio {
      */
     static void getMixerLinesJSON(StringBuffer sb, Mixer m) {
         Line.Info[] infos = m.getSourceLineInfo();
-        sb.append("sources : [ \n");
+        sb.append("\"sources\" : [ \n");
         boolean first = true;
         if (infos.length > 0) {
             Log.debug("sources = " + infos.length);
@@ -362,10 +364,10 @@ public class PhonoAudioShim extends EsupPhonoAudio {
 
                 DataLine.Info dataLineInfo = (DataLine.Info) infos[i];
                 AudioFormat[] supportedFormats = dataLineInfo.getFormats();
-                sb.append("minBuf : ").append("" + dataLineInfo.getMinBufferSize()).append("\n,");
-                sb.append("maxBuf : ").append("" + dataLineInfo.getMaxBufferSize()).append("\n");
+                sb.append("\"minBuf\" : ").append("" + dataLineInfo.getMinBufferSize()).append("\n,");
+                sb.append("\"maxBuf\" : ").append("" + dataLineInfo.getMaxBufferSize()).append("\n");
 
-                //getMixerLineFormatsJSON(sb, supportedFormats);
+                getMixerLineFormatsJSON(sb, supportedFormats);
                 sb.append("}\n");
 
             }
@@ -376,7 +378,7 @@ public class PhonoAudioShim extends EsupPhonoAudio {
         if (infos.length > 0) {
             Log.debug("targets = " + infos.length);
         }
-        sb.append("targets : [ \n");
+        sb.append("\"targets\" : [ \n");
         for (int i = 0; i < infos.length; i++) {
             if (infos[i] instanceof DataLine.Info) {
 
@@ -389,16 +391,21 @@ public class PhonoAudioShim extends EsupPhonoAudio {
 
                 DataLine.Info dataLineInfo = (DataLine.Info) infos[i];
                 AudioFormat[] supportedFormats = dataLineInfo.getFormats();
-                sb.append("minBuf : ").append("" + dataLineInfo.getMinBufferSize()).append("\n,");
-                sb.append("maxBuf : ").append("" + dataLineInfo.getMaxBufferSize()).append("\n,");
+                sb.append("\"minBuf\" : ").append("" + dataLineInfo.getMinBufferSize()).append("\n,");
+                sb.append("\"maxBuf\" : ").append("" + dataLineInfo.getMaxBufferSize()).append("\n,");
 
-                //getMixerLineFormatsJSON(sb, supportedFormats);
+                getMixerLineFormatsJSON(sb, supportedFormats);
                 sb.append("}\n");
 
             }
         }
         sb.append(" ] \n");
 
+    }
+
+    public static void putJSONProp(StringBuffer sb, String k, String v) {
+        char dq = '"';
+        sb.append(dq).append(k).append(dq).append(" : ").append(dq).append(v).append(dq).append(",");
     }
 
     /**
@@ -409,7 +416,10 @@ public class PhonoAudioShim extends EsupPhonoAudio {
      */
     public static void getMixerLineFormatsJSON(StringBuffer sb, AudioFormat[] fmts) {
 
-        sb.append("formats : [ \n");
+        AudioFormat def16 = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, PhonoAudio.SAMPLING_RATE_16K, 16, 1, 2, PhonoAudio.SAMPLING_RATE_16K, DOBIGENDIAN);
+        AudioFormat def8 = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, PhonoAudio.SAMPLING_RATE_8K, 16, 1, 2, PhonoAudio.SAMPLING_RATE_8K, DOBIGENDIAN);
+
+        sb.append("\"formats\" : [ \n");
 
         for (int i = 0; i < fmts.length; i++) {
             if (i > 0) {
@@ -417,9 +427,19 @@ public class PhonoAudioShim extends EsupPhonoAudio {
             }
             sb.append("{\n");
             AudioFormat af = fmts[i];
-            sb.append("encoding : ").append('"').append(af.getEncoding()).append('"').append(",\n");
-            sb.append("samplerate : ").append("" + af.getSampleRate()).append(",\n");
-            sb.append("bitsPerSample : ").append("" + af.getSampleSizeInBits()).append("\n");
+            putJSONProp(sb, "channels", "" + af.getChannels());
+            putJSONProp(sb, "encoding", "" + af.getEncoding());
+            putJSONProp(sb, "framerate", "" + af.getFrameRate());
+            putJSONProp(sb, "framesize", "" + af.getFrameSize());
+            putJSONProp(sb, "samplerate", "" + af.getSampleRate());
+            putJSONProp(sb, "samplesize", "" + af.getSampleSizeInBits());
+            putJSONProp(sb, "bigendian", "" + af.isBigEndian());
+            if (af.matches(def16)) {
+                sb.append("\"matches:\" \"def16\", ");
+            }
+            if (af.matches(def8)) {
+                sb.append("\"matches:\" \"def8\", ");
+            }
             sb.append("}\n");
         }
         sb.append(" ] \n");
@@ -443,8 +463,8 @@ public class PhonoAudioShim extends EsupPhonoAudio {
         }
         super.initMic(pref);
     }
-    
-    public static void main (String []argv){
+
+    public static void main(String[] argv) {
         StringBuffer sb = new StringBuffer("");
         PhonoAudioShim.getMixersJSON(sb);
         System.out.println(sb);

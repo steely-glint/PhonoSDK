@@ -57,9 +57,12 @@ import javax.sound.sampled.TargetDataLine;
  */
 public class PhonoAudio implements AudioFace {
 
+    static boolean DOBIGENDIAN =true; 
     public final static boolean DEFAULT_MUTE_STATE = false;
     // 8kHZ sampling rate:
     public final static float SAMPLING_RATE_8K = 8000.0F;
+    public final static float SAMPLING_RATE_16K = 16000.0F;
+
     public final static double QUIET = 100.0;
     protected LinkedHashMap<Long, CodecFace> _codecMap;
     protected CodecFace _codec;
@@ -116,7 +119,7 @@ public class PhonoAudio implements AudioFace {
      */
     public PhonoAudio() {
         //_cdmono = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100.0F, 16, 1, 2, 44100.0F, true);
-        _bestMacFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, __mac_rate, 16, 1, 2, __mac_rate, true);
+        _bestMacFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, __mac_rate, 16, 1, 2, __mac_rate, DOBIGENDIAN);
 
         _codecMap = new LinkedHashMap<Long, CodecFace>();
         fillCodecMap();
@@ -176,7 +179,7 @@ public class PhonoAudio implements AudioFace {
     public AudioFormat getAudioFormat() {
         _cutsz = 2 * ((_sampleRate > 8000.0) ? 4 : 2); // for mono - more for  stereo
         Log.debug("PhonoAudio.getAudioFormat(): Cutsz =" + _cutsz);
-        return new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, _sampleRate, 16, 1, 2, _sampleRate, true);
+        return new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, _sampleRate, 16, 1, 2, _sampleRate, DOBIGENDIAN);
 
     }
 
@@ -504,6 +507,8 @@ public class PhonoAudio implements AudioFace {
 
             } catch (LineUnavailableException lue) {
                 lue.printStackTrace();
+                Log.error("failed to get play audio format of "+pfmt);
+                Log.error("Using "+info);
 //                Log.database(lue, this, "initPlay");
                 throw new AudioException(lue.getMessage(), lue);
             } catch (Exception e) {
@@ -672,7 +677,7 @@ public class PhonoAudio implements AudioFace {
      */
     protected void initMic(Mixer m) throws AudioException {
         if (_rec == null) {
-            AudioFormat slin = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, _sampleRate, 16, 1, 2, _sampleRate, true);
+            AudioFormat slin = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, _sampleRate, 16, 1, 2, _sampleRate, DOBIGENDIAN);
 
             AudioFormat recfmt = slin;
 
