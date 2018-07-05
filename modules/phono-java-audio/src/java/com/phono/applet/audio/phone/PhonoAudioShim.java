@@ -19,7 +19,6 @@ package com.phono.applet.audio.phone;
 import com.phono.audio.AudioException;
 import com.phono.audio.codec.CodecFace;
 import com.phono.audio.codec.OpusCodec;
-import com.phono.codecs.speex.SpeexCodec;
 
 //import com.phono.dsp.EchoCanceler;
 import com.phono.srtplight.Log;
@@ -32,8 +31,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Map;
-import java.util.function.BiConsumer;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -307,7 +304,7 @@ public class PhonoAudioShim extends EsupPhonoAudio {
             while (i < size) {
                 if (head == tail) {
                     output[i] = 0;
-                    Log.debug("Speaker buffer empty, Outputting 0 to EC...");
+                    Log.verb("Speaker buffer empty, Outputting 0 to EC...");
                 } else {
                     output[i] = buffer[tail];
                 }

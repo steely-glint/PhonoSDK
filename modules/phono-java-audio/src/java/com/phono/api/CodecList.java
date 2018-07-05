@@ -49,7 +49,7 @@ public class CodecList {
         for (int i = 0; i < iaxcodecs.length; i++) {
             CodecFace c = _audio.getCodec(iaxcodecs[i]);
             if (c == null){
-                Log.error("Codec "+iaxcodecs[i]+" missing");
+                Log.debug("Codec "+iaxcodecs[i]+" missing");
                 continue;
             }
             Integer pt = ptLookup(iaxcodecs[i]);
