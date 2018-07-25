@@ -108,8 +108,8 @@ private final static int OPUS_GET_SAMPLE_RATE_REQUEST = 4029;
     private static boolean __loaded = false;
 
     // these can be set from the application.
-    static SampleRate PHONOSAMPLERATE = SampleRate.FM;
-    static Application PHONOAPPLICATION = Application.VOIP;
+    public static SampleRate PHONOSAMPLERATE = SampleRate.FM;
+    public static Application PHONOAPPLICATION = Application.VOIP;
     
     public static boolean loadLib(String fullPathToLib) {
         if (!__loaded) {
@@ -129,6 +129,7 @@ private final static int OPUS_GET_SAMPLE_RATE_REQUEST = 4029;
         int dsz = getDecoderSize(CHANNELS);
         _enc = ByteBuffer.allocateDirect(esz);
         _dec = ByteBuffer.allocateDirect(dsz);
+        Log.debug("initing native opus codec with rate="+PHONOSAMPLERATE.Value+" ch="+ CHANNELS+" App="+ PHONOAPPLICATION.Value);
         initEncoder(PHONOSAMPLERATE.Value, CHANNELS, PHONOAPPLICATION.Value);
         initDecoder(PHONOSAMPLERATE.Value, CHANNELS);
     }
