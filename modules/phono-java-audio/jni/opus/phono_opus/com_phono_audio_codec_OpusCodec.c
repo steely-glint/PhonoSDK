@@ -4,6 +4,8 @@
 #include <alloca.h>
 #include "com_phono_audio_codec_OpusCodec.h"
 
+#define MAXPKT_SZ 1200
+
 void * getDirectAddress(JNIEnv *env, jobject this,char *name){
         jclass clz;
         jfieldID fld;
@@ -98,6 +100,8 @@ JNIEXPORT jshortArray JNICALL Java_com_phono_audio_codec_OpusCodec_opusDecode
           jsize wlen =0;
           int res;
           int alen = 0;
+          int maxaudio = (48000 *4 * 60 )/1000;
+                        // (max sample rate * 16 bit * stereo * maxptime)/ms
           OpusDecoder *dec;
           dec = getDec(env,this);
 
@@ -105,9 +109,9 @@ JNIEXPORT jshortArray JNICALL Java_com_phono_audio_codec_OpusCodec_opusDecode
           offs = (*env)->GetByteArrayElements(env, jwire, 0);
           wlen = (*env)->GetArrayLength(env, jwire);
 	  //printf("decoder = %8x ip = %8x len = %d\n", dec,offs,wlen);
-         
-          top = alloca(4096);
-	  alen = opus_decode(dec,offs,wlen,top,4096,doFec);
+          
+          top = alloca(maxaudio);
+	  alen = opus_decode(dec,offs,wlen,top,maxaudio,doFec);
           //printf("decoder output len = %d\n", alen);
 
           if (alen > 0) {
@@ -143,9 +147,9 @@ JNIEXPORT jbyteArray JNICALL Java_com_phono_audio_codec_OpusCodec_opusEncode
           // memory faffing
           ip =  (*env)->GetShortArrayElements(env, jaudio, 0);
           ipl = (*env)->GetArrayLength(env, jaudio);
-          wire = alloca(160);
+          wire = alloca(MAXPKT_SZ);
 	  //printf("encoder = %8x ip = %8x len = %d\n", enc,ip,ipl);
-	  nbBytes = opus_encode	(enc,ip,ipl,wire,160);
+	  nbBytes = opus_encode	(enc,ip,ipl,wire,MAXPKT_SZ);
           
           jbyteArray jwire = (*env)->NewByteArray(env, nbBytes);
           offs = (*env)->GetByteArrayElements(env, jwire, 0);

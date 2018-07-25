@@ -25,6 +25,27 @@ import java.nio.ByteBuffer;
  */
 public class OpusCodec implements CodecFace, EncoderFace, DecoderFace {
 
+    public enum Application {
+        VOIP(2048),
+        AUDIO(2049),
+        RESTRICTED_LOWDELAY(2051);
+        public final int Value;
+
+        private Application(int value) {
+            Value = value;
+        }
+    }
+
+    public enum SampleRate {
+        HD(48000),
+        FM(16000),
+        PSTN(8000);
+        public final int Value;
+
+        private SampleRate(int value) {
+            Value = value;
+        }
+    }
     private final static int OPUS_SET_APPLICATION_REQUEST = 4000;
     private final static int OPUS_GET_APPLICATION_REQUEST = 4001;
     private final static int OPUS_SET_BITRATE_REQUEST = 4002;
@@ -59,8 +80,7 @@ private final static int OPUS_GET_SAMPLE_RATE_REQUEST = 4029;
     private final static int OPUS_GET_GAIN_REQUEST = 4045;
     private final static int OPUS_SET_LSB_DEPTH_REQUEST = 4036;
     private final static int OPUS_GET_LSB_DEPTH_REQUEST = 4037;
-    private final static int OPUS_APPLICATION_VOIP = 2048;
-    private final static int PHONOSAMPLERATE = 16000;
+
     public final static long OPUS_CODEC = (1L << 34);
     final int ENCODER = 0;
     final int DECODER = 1;
@@ -87,6 +107,10 @@ private final static int OPUS_GET_SAMPLE_RATE_REQUEST = 4029;
     private native void freeCodec();
     private static boolean __loaded = false;
 
+    // these can be set from the application.
+    static SampleRate PHONOSAMPLERATE = SampleRate.FM;
+    static Application PHONOAPPLICATION = Application.VOIP;
+    
     public static boolean loadLib(String fullPathToLib) {
         if (!__loaded) {
             if (fullPathToLib == null) {
@@ -105,8 +129,8 @@ private final static int OPUS_GET_SAMPLE_RATE_REQUEST = 4029;
         int dsz = getDecoderSize(CHANNELS);
         _enc = ByteBuffer.allocateDirect(esz);
         _dec = ByteBuffer.allocateDirect(dsz);
-        initEncoder(PHONOSAMPLERATE, CHANNELS, OPUS_APPLICATION_VOIP);
-        initDecoder(PHONOSAMPLERATE, CHANNELS);
+        initEncoder(PHONOSAMPLERATE.Value, CHANNELS, PHONOAPPLICATION.Value);
+        initDecoder(PHONOSAMPLERATE.Value, CHANNELS);
     }
 
     @Override
@@ -136,7 +160,7 @@ private final static int OPUS_GET_SAMPLE_RATE_REQUEST = 4029;
 
     @Override
     public float getSampleRate() {
-        return (float) PHONOSAMPLERATE;
+        return (float) PHONOSAMPLERATE.Value;
     }
 
     public String getName() {
@@ -150,8 +174,8 @@ private final static int OPUS_GET_SAMPLE_RATE_REQUEST = 4029;
     }
 
     @Override
-    public short[] decode_frame(byte[] bytes,boolean fec) {
-        return opusDecode(bytes, fec?1:0);
+    public short[] decode_frame(byte[] bytes, boolean fec) {
+        return opusDecode(bytes, fec ? 1 : 0);
     }
 
     @Override
