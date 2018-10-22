@@ -265,7 +265,7 @@ public class PhonoAudio implements AudioFace {
         _encode = _codec.getEncoder();
         _sampleRate = _codec.getSampleRate();
         String text = "PhonoAudio.init(): codec=" + this.getCodecString(codec) + " (" + codec + ")";
-
+        Log.debug("codec is "+_codec.getName()+" rate ="+_codec.getSampleRate());
         if (_codec == null) {
             Log.debug(text + " is not supported.");
             throw new AudioException(text + " is not supported");
