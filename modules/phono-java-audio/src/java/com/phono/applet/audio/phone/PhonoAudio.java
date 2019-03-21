@@ -113,6 +113,7 @@ public class PhonoAudio implements AudioFace {
     protected FloatControl pan;
     private int _dtmfDigit = -1;
     private int _samplesPerFrame;
+   
 
     /**
      * Creates a new instance of PhonoAudio
@@ -132,10 +133,15 @@ public class PhonoAudio implements AudioFace {
             _osname = "";
         }
         Log.debug("Os name is "+_osname);
+
         _javaVersion = System.getProperty("java.specification.version");
         _audioProperties = new Properties();
     }
-
+    
+    protected boolean useCDRec(){
+        return "mac os x".equals(_osname);
+    }
+    
     protected void fillCodecMap() {
         // add all the supported Codecs, in the order of preference
         G722Codec g722Codec = new G722Codec();
@@ -684,7 +690,7 @@ public class PhonoAudio implements AudioFace {
             int recBuffsz = _bytesPerFrame * _deep;
 
             // macs won't give you 8k slin 
-            if ("mac os x".equals(_osname) ){
+            if (useCDRec()){
                 recfmt = _bestMacFormat;
                 int mbpf = _bytesPerFrame * (int) recfmt.getFrameRate() / (int) _sampleRate;
                 recBuffsz = mbpf * _deep;
