@@ -317,7 +317,7 @@ public class PhonoAudioShim extends EsupPhonoAudio {
 
     public static void getMixersJSON(StringBuffer sb) {
         Mixer.Info[] mixI = AudioSystem.getMixerInfo();
-        sb.append("\"mixers\"").append(" : ").append(" [ \n");
+        sb.append("{\"mixers\"").append(" : ").append(" [ \n");
         for (int i = 0; i < mixI.length; i++) {
             Mixer.Info mi = mixI[i];
             Log.debug("Mixer " + mi.getName() + " vendor " + mi.getVendor());
@@ -333,7 +333,12 @@ public class PhonoAudioShim extends EsupPhonoAudio {
             getMixerLinesJSON(sb, m);
             sb.append("}\n");
         }
-        sb.append(" ] \n");
+        sb.append(" ]\n");
+        putJSONProp(sb,"jvm",System.getProperty("java.vm.name","unknown"));
+        putJSONProp(sb,"arch",System.getProperty("os.arch","unknown"));
+
+        sb.append(" } \n");
+
     }
 
     /**
@@ -362,7 +367,7 @@ public class PhonoAudioShim extends EsupPhonoAudio {
                 DataLine.Info dataLineInfo = (DataLine.Info) infos[i];
                 AudioFormat[] supportedFormats = dataLineInfo.getFormats();
                 sb.append("\"minBuf\" : ").append("" + dataLineInfo.getMinBufferSize()).append("\n,");
-                sb.append("\"maxBuf\" : ").append("" + dataLineInfo.getMaxBufferSize()).append("\n");
+                sb.append("\"maxBuf\" : ").append("" + dataLineInfo.getMaxBufferSize()).append("\n,");
 
                 getMixerLineFormatsJSON(sb, supportedFormats);
                 sb.append("}\n");
@@ -399,10 +404,16 @@ public class PhonoAudioShim extends EsupPhonoAudio {
         sb.append(" ] \n");
 
     }
-
     public static void putJSONProp(StringBuffer sb, String k, String v) {
+        putJSONProp( sb, k, v,false);
+    }
+
+    public static void putJSONProp(StringBuffer sb, String k, String v,boolean first) {
         char dq = '"';
-        sb.append(dq).append(k).append(dq).append(" : ").append(dq).append(v).append(dq).append(",");
+        if (! first){
+            sb.append(",");
+        }
+        sb.append(dq).append(k).append(dq).append(" : ").append(dq).append(v).append(dq);
     }
 
     /**
@@ -424,7 +435,7 @@ public class PhonoAudioShim extends EsupPhonoAudio {
             }
             sb.append("{\n");
             AudioFormat af = fmts[i];
-            putJSONProp(sb, "channels", "" + af.getChannels());
+            putJSONProp(sb, "channels", "" + af.getChannels(),true);
             putJSONProp(sb, "encoding", "" + af.getEncoding());
             putJSONProp(sb, "framerate", "" + af.getFrameRate());
             putJSONProp(sb, "framesize", "" + af.getFrameSize());
@@ -432,10 +443,10 @@ public class PhonoAudioShim extends EsupPhonoAudio {
             putJSONProp(sb, "samplesize", "" + af.getSampleSizeInBits());
             putJSONProp(sb, "bigendian", "" + af.isBigEndian());
             if (af.matches(def16)) {
-                sb.append("\"matches:\" \"def16\", ");
+                sb.append("\",matches:\" \"def16\" ");
             }
             if (af.matches(def8)) {
-                sb.append("\"matches:\" \"def8\", ");
+                sb.append("\",matches:\" \"def8\" ");
             }
             sb.append("}\n");
         }
