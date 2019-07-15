@@ -31,6 +31,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -235,13 +236,13 @@ public class PhonoAudioShim extends EsupPhonoAudio {
     class SampleBuffer {
 
         private short[] buffer;
-        private int tail;
-        private int head;
+        private AtomicInteger tail;
+        private AtomicInteger head;
 
         public SampleBuffer(int size) {
             buffer = new short[size];
-            tail = 0;
-            head = 0;
+            tail = new AtomicInteger(0);
+            head = new AtomicInteger(0);
         }
 
         // Remove or duplicate samples based on the shaver
@@ -253,28 +254,34 @@ public class PhonoAudioShim extends EsupPhonoAudio {
 
             while (i < 0) {
                 // Nuke some samples
-                if (tail != head) {
-                    tail = tail - 1;
-                }
-                if (tail == -1) {
-                    tail = buffer.length - 1;
-                }
+                final int lhead = head.get();
+                tail.updateAndGet((ltail) -> {
+                    if (ltail != lhead) {
+                        ltail = ltail - 1;
+                    }
+                    if (ltail == -1) {
+                        ltail = buffer.length - 1;
+                    }
+                    return ltail;
+                });
                 i = i + 1;
             }
             short sample;
-            if (head == tail) {
+            int lhead = head.get();
+            int ltail = tail.get();
+            if (lhead == ltail) {
                 sample = 0;
-            } else if (head - 1 >= 0) {
-                sample = buffer[head - 1];
+            } else if (lhead - 1 >= 0) {
+                sample = buffer[lhead - 1];
             } else {
                 sample = buffer[buffer.length - 1];
             }
             while (i > 0) {
                 // Pad some samples
-                buffer[head] = sample;
-                head = (head + 1) % buffer.length;
-                if (head == tail) {
-                    tail = (tail + 1) % buffer.length;
+                buffer[lhead] = sample;
+                lhead = head.updateAndGet((l) -> (l+1) % buffer.length);
+                if (lhead == ltail) {
+                    ltail = tail.updateAndGet((t) -> (t+1)%buffer.length);
                 }
                 i = i - 1;
             }
@@ -285,11 +292,13 @@ public class PhonoAudioShim extends EsupPhonoAudio {
             // if we are full, overwrite the tail and advance it
             int i = 0;
             while (i < samples.length) {
-                buffer[head] = samples[i];
+                int lhead = head.get();
+                int ltail = tail.get();
+                buffer[lhead] = samples[i];
                 i = i + 1;
-                head = (head + 1) % buffer.length;
-                if (head == tail) {
-                    tail = (tail + 1) % buffer.length;
+                lhead = head.updateAndGet((h) -> (h + 1) % buffer.length);
+                if (lhead == ltail) {
+                    ltail = tail.updateAndGet( (t) -> (t + 1) % buffer.length);
                 }
             }
         }
@@ -298,18 +307,19 @@ public class PhonoAudioShim extends EsupPhonoAudio {
         // if not enough data then return 0s.
         public short[] read(int size) {
             // If head == tail it's empty
-            int contents = (head - tail) % buffer.length;
             short[] output = new short[size];
             int i = 0;
+            int lhead = head.get();
+            int ltail = tail.get();
             while (i < size) {
-                if (head == tail) {
+                if (lhead == ltail) {
                     output[i] = 0;
                     Log.verb("Speaker buffer empty, Outputting 0 to EC...");
                 } else {
-                    output[i] = buffer[tail];
+                    output[i] = buffer[ltail];
                 }
                 i = i + 1;
-                tail = (tail + 1) % buffer.length;
+                ltail = tail.updateAndGet((t) -> (t + 1) % buffer.length);
             }
             return output;
         }
@@ -334,8 +344,8 @@ public class PhonoAudioShim extends EsupPhonoAudio {
             sb.append("}\n");
         }
         sb.append(" ]\n");
-        putJSONProp(sb,"jvm",System.getProperty("java.vm.name","unknown"));
-        putJSONProp(sb,"arch",System.getProperty("os.arch","unknown"));
+        putJSONProp(sb, "jvm", System.getProperty("java.vm.name", "unknown"));
+        putJSONProp(sb, "arch", System.getProperty("os.arch", "unknown"));
 
         sb.append(" } \n");
 
@@ -404,13 +414,14 @@ public class PhonoAudioShim extends EsupPhonoAudio {
         sb.append(" ] \n");
 
     }
+
     public static void putJSONProp(StringBuffer sb, String k, String v) {
-        putJSONProp( sb, k, v,false);
+        putJSONProp(sb, k, v, false);
     }
 
-    public static void putJSONProp(StringBuffer sb, String k, String v,boolean first) {
+    public static void putJSONProp(StringBuffer sb, String k, String v, boolean first) {
         char dq = '"';
-        if (! first){
+        if (!first) {
             sb.append(",");
         }
         sb.append(dq).append(k).append(dq).append(" : ").append(dq).append(v).append(dq);
@@ -435,7 +446,7 @@ public class PhonoAudioShim extends EsupPhonoAudio {
             }
             sb.append("{\n");
             AudioFormat af = fmts[i];
-            putJSONProp(sb, "channels", "" + af.getChannels(),true);
+            putJSONProp(sb, "channels", "" + af.getChannels(), true);
             putJSONProp(sb, "encoding", "" + af.getEncoding());
             putJSONProp(sb, "framerate", "" + af.getFrameRate());
             putJSONProp(sb, "framesize", "" + af.getFrameSize());
