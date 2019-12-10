@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.phono</groupId>
     <artifactId>audio</artifactId>
-    <version>1.1.8</version>
+    <version>1.1.9-SNAPSHOT</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -17,11 +17,11 @@
             <version>1.1.6</version>
         </dependency>
 <!-- https://mvnrepository.com/artifact/javazoom/jlayer -->
-<dependency>
+<!--dependency>
     <groupId>javazoom</groupId>
     <artifactId>jlayer</artifactId>
-    <version>1.0.1</version>
-</dependency>
+    <version>1.0.1</versio>
+</dependency-->
     <dependency>
         <groupId>org.seleniumhq.selenium</groupId>
         <artifactId>selenium-java</artifactId>
@@ -46,6 +46,12 @@
     <scope>test</scope>
     <version>4.11</version>
   </dependency>
+    <dependency>
+        <groupId>org.concentus</groupId>
+        <artifactId>Concentus</artifactId>
+      <version>1.0-SNAPSHOT</version>
+      <type>jar</type>
+    </dependency>
 </dependencies>
 <build>
         <plugins>
@@ -59,6 +65,9 @@
             <excludes>
               <exclude>com/phono/android/**</exclude>
               <exclude>com/phono/applet/rtp/RTPApplet.java</exclude>
+              <exclude>com/phono/api/Share.java</exclude>
+              <exclude>com/phono/api/PlayFace.java</exclude>
+              <exclude>com/phono/applet/audio/phone/Play.java</exclude>
             </excludes>
                 </configuration>
             </plugin>

@@ -19,6 +19,7 @@ package com.phono.applet.audio.phone;
 import com.phono.audio.AudioException;
 import com.phono.audio.codec.CodecFace;
 import com.phono.audio.codec.OpusCodec;
+import com.phono.audio.codec.opus.PureOpusCodec;
 
 //import com.phono.dsp.EchoCanceler;
 import com.phono.srtplight.Log;
@@ -90,14 +91,17 @@ public class PhonoAudioShim extends EsupPhonoAudio {
     @Override
     protected void fillCodecMap() {
         super.fillCodecMap();
-        boolean have_opus = OpusCodec.loadLib(null);
-        if (have_opus) {
+        boolean have_native_opus = OpusCodec.loadLib(null);
+        if (have_native_opus) {
             Log.debug("Loaded opus codec");
             OpusCodec oc = new OpusCodec();
             _codecMap.put(new Long(oc.getCodec()), oc);
             _defaultCodec = oc;
         } else {
-            Log.warn("Can't load opus codec");
+            PureOpusCodec poc = new PureOpusCodec();
+            Log.debug("Loaded pure opus codec");
+            _codecMap.put(new Long(poc.getCodec()), poc);
+            _defaultCodec = poc;          
         }
 
         printAvailableCodecs();
@@ -202,7 +206,7 @@ public class PhonoAudioShim extends EsupPhonoAudio {
     // make the timestamps tidy
     @Override
     public int getOutboundTimestamp() {
-        _outstamp += 20;
+        _outstamp += this.getFrameInterval();
         return _outstamp;
     }
 
