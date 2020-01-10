@@ -32,6 +32,7 @@ import com.phono.audio.codec.gsm.GSM_Codec;
 import com.phono.audio.codec.slin.SLin_Codec;
 import com.phono.audio.codec.ulaw.ULaw_Codec;
 import com.phono.audio.NetStatsFace;
+import com.phono.audio.codec.DecodesFEC;
 import com.phono.audio.phone.PhonoAudioPropNames;
 import com.phono.audio.phone.StampedAudioImpl;
 import com.phono.srtplight.Log;
@@ -530,16 +531,11 @@ public class PhonoAudio implements AudioFace {
         int flen = stampedAudio.getLength();
         byte[] bs = stampedAudio.getData();
         if (next != null) {
-            // fill in the gap before stampedAudio
-            // this DOESN'T write 'next'
-            byte[] bs1 = new byte[flen];
-            System.arraycopy(bs, offs, bs1, 0, flen);
-            byte[] bs2 = new byte[next.getLength()];
-            System.arraycopy(next.getData(), next.getOffset(), bs2, 0, next.getLength());
-            byte[] bs0 = _decode.lost_frame(bs1, bs2);
-            if (bs0 != null) {
-                Log.debug("PhonoAudio.orderedWrite(): recovering lost packet");
-                writeBuff(bs0.length, 0, bs0);
+            if (_decode instanceof DecodesFEC){
+                int feclen = writeBuff(flen, offs, bs,true);
+                Log.debug("doing  FEC for this lost frame. Revived "+feclen);
+            } else {
+                Log.debug("can't FEC for this lost frame ");
             }
         }
         int dlen = writeBuff(flen, offs, bs);

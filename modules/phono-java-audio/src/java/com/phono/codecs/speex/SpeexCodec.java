@@ -111,9 +111,4 @@ public class SpeexCodec implements CodecFace, EncoderFace, DecoderFace {
         return audioOut;
     }
 
-    public byte[] lost_frame(byte[] bytes, byte[] bytes1) {
-        // only gives us a _decoded_ frame - we don;t know what to do with that....
-        // todo....
-        return null;
-    }
 }

@@ -210,8 +210,4 @@ public class ALaw_Codec implements CodecFace, DecoderFace, EncoderFace {
     public String getName() {
         return "Alaw";
     }
-
-    public byte[] lost_frame(byte current_frame[], byte next_frame[]) {
-        return current_frame;
-    }
 }

@@ -280,7 +280,4 @@ public class G722Decoder implements DecoderFace {
 
     }
 
-    public byte[] lost_frame(byte current_frame[], byte next_frame[]) {
-        return current_frame;
-    }
 }

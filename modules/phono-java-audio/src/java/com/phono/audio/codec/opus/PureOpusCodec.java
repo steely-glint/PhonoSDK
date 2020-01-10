@@ -7,6 +7,7 @@ package com.phono.audio.codec.opus;
 
 import com.phono.audio.codec.CodecFace;
 import com.phono.audio.codec.DecoderFace;
+import com.phono.audio.codec.DecodesFEC;
 import com.phono.audio.codec.EncoderFace;
 import com.phono.audio.codec.OpusCodec;
 import static com.phono.audio.codec.OpusCodec.OPUS_CODEC;
@@ -20,7 +21,7 @@ import org.concentus.OpusException;
  *
  * @author tim
  */
-public class PureOpusCodec implements CodecFace, EncoderFace, DecoderFace {
+public class PureOpusCodec implements CodecFace, EncoderFace, DecodesFEC {
 
     private OpusEncoder encoder;
     private OpusDecoder decoder;
@@ -30,10 +31,11 @@ public class PureOpusCodec implements CodecFace, EncoderFace, DecoderFace {
     final static int CHANNELS = 1;
     private final int maxpkt;
     private final int maxaudio;
+    public static int FRAMEINTERVAL = 40;
 
     public PureOpusCodec() {
         maxpkt = 1200;
-        maxaudio = (PHONOSAMPLERATE.Value * CHANNELS * 60) / 1000;
+        maxaudio = (PHONOSAMPLERATE.Value * CHANNELS * FRAMEINTERVAL ) / 1000;
         try {
             OpusApplication mode = OpusApplication.OPUS_APPLICATION_UNIMPLEMENTED;
             if (PHONOAPPLICATION == OpusCodec.Application.VOIP) {
@@ -60,7 +62,7 @@ public class PureOpusCodec implements CodecFace, EncoderFace, DecoderFace {
 
     @Override
     public int getFrameInterval() {
-        return 40;
+        return FRAMEINTERVAL;
     }
 
     @Override
@@ -115,11 +117,5 @@ public class PureOpusCodec implements CodecFace, EncoderFace, DecoderFace {
         return ret;
     }
 
-    @Override
-    public byte[] lost_frame(byte[] current_frame, byte[] next_frame) {
-        Log.warn("Todo fec/plc");;
-        return current_frame; 
-        
-    }
 
 }

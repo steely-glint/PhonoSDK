@@ -581,7 +581,4 @@ public class GSM_Decoder extends GSM_Base implements DecoderFace {
         }
     }
 
-    public byte[] lost_frame(byte current_frame[], byte next_frame[]) {
-        return current_frame;
-    }
 }

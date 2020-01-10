@@ -32,19 +32,10 @@ public interface DecoderFace {
      * Decodes an (encoded) frame.
      *
      * @param encoded_signal The encoded frame(s)
-     * @param fec decoder should attempy to get fec from this frame
+     * @param fec decoder should attempt to get fec from this frame
      * @return The decoded frame
      * 
      */
     public short[] decode_frame(byte[] ebuff, boolean fec);
-
-
-    /**
-     * Try to magic up a lost frame from what we have
-     * @param current_frame
-     * @param next_frame
-     * @return A made up frame, that is still encoded.
-     */
-    public byte[] lost_frame(byte current_frame[], byte next_frame[]);
 
 }

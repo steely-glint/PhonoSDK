@@ -97,8 +97,4 @@ public class SLin_Codec implements CodecFace, DecoderFace, EncoderFace {
     public String getName() {
         return "SLIN";
     }
-
-    public byte[] lost_frame(byte current_frame[], byte next_frame[]) {
-        return current_frame;
-    }
 }

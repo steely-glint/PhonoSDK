@@ -183,9 +183,5 @@ private final static int OPUS_GET_SAMPLE_RATE_REQUEST = 4029;
         return opusDecode(bytes, fec ? 1 : 0);
     }
 
-    @Override
-    public byte[] lost_frame(byte[] current_frame, byte[] next_frame) {
-        return current_frame;
-    }
 
 }

@@ -111,8 +111,5 @@ public class NativeSpeexCodec implements CodecFace, EncoderFace, DecoderFace {
         return _adataOut;
     }
 
-    public byte[] lost_frame(byte[] current_frame, byte[] next_frame) {
-        return current_frame;
-    }
 
 }

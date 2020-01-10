@@ -22,6 +22,8 @@ import com.phono.audio.AudioFace;
 import com.phono.audio.AudioReceiver;
 import com.phono.audio.StampedAudio;
 import com.phono.audio.codec.CodecFace;
+import com.phono.audio.codec.OpusCodec;
+import com.phono.audio.codec.opus.PureOpusCodec;
 import com.phono.audio.phone.PhonoAudioPropNames;
 import com.phono.srtplight.Log;
 import java.util.logging.Level;
@@ -90,7 +92,9 @@ public class EchoAudioTester implements AudioReceiver {
     }
 
     public static void main(String argv[]) {
-        String codecName = "OPUS";
+        String codecName = "GSM";
+        PureOpusCodec.PHONOSAMPLERATE = OpusCodec.SampleRate.HD;
+        PureOpusCodec.PHONOAPPLICATION = OpusCodec.Application.VOIP;
         Log.setLevel(Log.VERB);
         if (argv.length > 0) {
             codecName = argv[0];
