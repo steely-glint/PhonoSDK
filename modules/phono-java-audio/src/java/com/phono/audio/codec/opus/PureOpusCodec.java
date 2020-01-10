@@ -96,7 +96,7 @@ public class PureOpusCodec implements CodecFace, EncoderFace, DecoderFace {
             ret = new byte[sz];
             System.arraycopy(out_data, 0, ret, 0, sz);
         } catch (OpusException ex) {
-            Log.debug("Can't encode frame to opus");
+            Log.debug("Can't encode frame to opus"+ex.getMessage());
         }
         return ret;
     }
@@ -106,18 +106,20 @@ public class PureOpusCodec implements CodecFace, EncoderFace, DecoderFace {
         short[] out_data = new short[maxaudio];
         short[] ret = null;
         try {
-            int sz = decoder.decode(ebuff, CHANNELS, maxpkt, out_data, maxpkt, CHANNELS, fec);
+            int sz = decoder.decode(ebuff,0,ebuff.length,out_data,0,maxaudio,fec);
             ret = new short[sz];
             System.arraycopy(out_data, 0, ret, 0, sz);
         } catch (OpusException ex) {
-            Log.debug("Can't decode frame from opus");
+            Log.debug("Can't decode frame from opus"+ ex.getMessage());
         }
         return ret;
     }
 
     @Override
     public byte[] lost_frame(byte[] current_frame, byte[] next_frame) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Log.warn("Todo fec/plc");;
+        return current_frame; 
+        
     }
 
 }
