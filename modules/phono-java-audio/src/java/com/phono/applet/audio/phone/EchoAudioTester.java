@@ -26,8 +26,6 @@ import com.phono.audio.codec.OpusCodec;
 import com.phono.audio.codec.opus.PureOpusCodec;
 import com.phono.audio.phone.PhonoAudioPropNames;
 import com.phono.srtplight.Log;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -59,16 +57,22 @@ public class EchoAudioTester implements AudioReceiver {
 
     public void start() {
         aud.startRec();
-        aud.startPlay();
+        //aud.startPlay();
     }
 
     public void stop() {
         aud.stopPlay();
         aud.stopRec();
     }
-
+    int count =0;
     @Override
     public void newAudioDataReady(AudioFace a, int bytesAvailable) {
+        if (count < 5 ){
+            count++;
+        }
+        if (count == 5){
+            aud.startPlay();
+        }
         try {
             StampedAudio sa = a.readStampedAudio();
             while (sa != null) {
@@ -92,7 +96,7 @@ public class EchoAudioTester implements AudioReceiver {
     }
 
     public static void main(String argv[]) {
-        String codecName = "GSM";
+        String codecName = "OPUS";
         PureOpusCodec.PHONOSAMPLERATE = OpusCodec.SampleRate.HD;
         PureOpusCodec.PHONOAPPLICATION = OpusCodec.Application.VOIP;
         Log.setLevel(Log.VERB);

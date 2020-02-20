@@ -21,7 +21,7 @@ import org.concentus.OpusException;
  *
  * @author tim
  */
-public class PureOpusCodec implements CodecFace, EncoderFace, DecodesFEC {
+public class PureOpusCodec implements CodecFace, EncoderFace ,DecodesFEC {
 
     private OpusEncoder encoder;
     private OpusDecoder decoder;
@@ -46,7 +46,7 @@ public class PureOpusCodec implements CodecFace, EncoderFace, DecodesFEC {
                 mode = OpusApplication.OPUS_APPLICATION_RESTRICTED_LOWDELAY;
             }
             encoder = new OpusEncoder(PHONOSAMPLERATE.Value, CHANNELS, mode);
-            encoder.setBitrate(20000);
+            encoder.setBitrate(32000);
             encoder.setComplexity(1);
             encoder.setPacketLossPercent(10);
             decoder = new OpusDecoder(PHONOSAMPLERATE.Value, CHANNELS);
