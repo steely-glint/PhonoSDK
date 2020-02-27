@@ -564,7 +564,10 @@ public class PhonoAudio implements AudioFace {
         while ((flen >= cfs) && (flen > 0)) {
             byte[] ebuff = (_encodedbuffPlay != null) ? _encodedbuffPlay : new byte[flen];
             System.arraycopy(bs, offs, ebuff, 0, cfs);
+            Long then = System.currentTimeMillis();
             short[] sframe = _decode.decode_frame(ebuff, fec);
+            Long now = System.currentTimeMillis();
+            Log.info("decode "+ _decode.getClass().getSimpleName()+" took "+ (now-then)+" ms");
             int dlen = 0;
             if (sframe != null) {
                 int trimmed = 0;

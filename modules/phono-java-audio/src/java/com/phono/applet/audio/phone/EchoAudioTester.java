@@ -45,6 +45,7 @@ public class EchoAudioTester implements AudioReceiver {
         DecoderFace dec;
 
         FrankenCodec(EncoderFace enc, DecoderFace dec) {
+            Log.info("Making Frankencodec - to test compatibility between native and pure");
             if (enc instanceof CodecFace) {
                 base = (CodecFace) enc;
             }
@@ -94,13 +95,14 @@ public class EchoAudioTester implements AudioReceiver {
             protected void fillCodecMap() {
                 super.fillCodecMap();
                 CodecFace nat = _codecMap.get(PureOpusCodec.AUDIO_OPUS);
+                Log.info("opus codec is "+nat.getClass().getSimpleName());
                 if ((nat != null) && (nat instanceof OpusCodec)) {
                     PureOpusCodec dec = new PureOpusCodec();
-                    FrankenCodec mixed = new FrankenCodec((OpusCodec) nat, dec);
+                    FrankenCodec mixed = new FrankenCodec((PureOpusCodec) dec, (DecoderFace)nat);
                     this._codecMap.put(mixed.getCodec(), mixed);
-                    Log.warn("using FrankenCodec");
+                    Log.info("using FrankenCodec");
                 } else {
-                    Log.warn("No native opus codec found");
+                    Log.info("No native opus codec found");
                 }
             }
         };
@@ -134,7 +136,7 @@ public class EchoAudioTester implements AudioReceiver {
 
     @Override
     public void newAudioDataReady(AudioFace a, int bytesAvailable) {
-        if (count < 5) {
+        if (count <=5) {
             count++;
         }
         if (count == 5) {
@@ -165,6 +167,7 @@ public class EchoAudioTester implements AudioReceiver {
         String codecName = "OPUS";
         PureOpusCodec.PHONOSAMPLERATE = OpusCodec.SampleRate.FM;
         PureOpusCodec.PHONOAPPLICATION = OpusCodec.Application.VOIP;
+        PureOpusCodec.FRAMEINTERVAL = 20;
         Log.setLevel(Log.VERB);
         if (argv.length > 0) {
             codecName = argv[0];

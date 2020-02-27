@@ -116,6 +116,9 @@ public class PureOpusCodec implements CodecFace, EncoderFace ,DecoderFace {
         }
         return ret;
     }
-
+    public void decoderReset(){
+        decoder.resetState();
+        Log.warn("reset opus decoder");
+    }
 
 }
