@@ -22,6 +22,8 @@ import com.phono.audio.AudioFace;
 import com.phono.audio.AudioReceiver;
 import com.phono.audio.StampedAudio;
 import com.phono.audio.codec.CodecFace;
+import com.phono.audio.codec.DecoderFace;
+import com.phono.audio.codec.EncoderFace;
 import com.phono.audio.codec.OpusCodec;
 import com.phono.audio.codec.opus.PureOpusCodec;
 import com.phono.audio.phone.PhonoAudioPropNames;
@@ -36,8 +38,72 @@ public class EchoAudioTester implements AudioReceiver {
     private PhonoAudioShim aud;
     private final int step;
 
+    class FrankenCodec implements CodecFace {
+
+        CodecFace base;
+        EncoderFace enc;
+        DecoderFace dec;
+
+        FrankenCodec(EncoderFace enc, DecoderFace dec) {
+            if (enc instanceof CodecFace) {
+                base = (CodecFace) enc;
+            }
+            this.enc = enc;
+            this.dec = dec;
+        }
+
+        @Override
+        public int getFrameSize() {
+            return base.getFrameSize();
+        }
+
+        @Override
+        public int getFrameInterval() {
+            return base.getFrameInterval();
+        }
+
+        @Override
+        public long getCodec() {
+            return base.getCodec();
+        }
+
+        @Override
+        public DecoderFace getDecoder() {
+            return dec;
+        }
+
+        @Override
+        public EncoderFace getEncoder() {
+            return enc;
+        }
+
+        @Override
+        public String getName() {
+            return base.getName();
+        }
+
+        @Override
+        public float getSampleRate() {
+            return base.getSampleRate();
+        }
+
+    };
+
     EchoAudioTester(String codec) throws AudioException {
-        aud = new PhonoAudioShim();
+        aud = new PhonoAudioShim() {
+            protected void fillCodecMap() {
+                super.fillCodecMap();
+                CodecFace nat = _codecMap.get(PureOpusCodec.AUDIO_OPUS);
+                if ((nat != null) && (nat instanceof OpusCodec)) {
+                    PureOpusCodec dec = new PureOpusCodec();
+                    FrankenCodec mixed = new FrankenCodec((OpusCodec) nat, dec);
+                    this._codecMap.put(mixed.getCodec(), mixed);
+                    Log.warn("using FrankenCodec");
+                } else {
+                    Log.warn("No native opus codec found");
+                }
+            }
+        };
         aud.addAudioReceiver(this);
         aud.setAudioProperty(PhonoAudioPropNames.DOEC, "false");
 
@@ -52,7 +118,7 @@ public class EchoAudioTester implements AudioReceiver {
         }
         aud.init(codecL, 60);
         this.step = aud.getFrameInterval();
-        Log.debug("step =" +step);
+        Log.debug("step =" + step);
     }
 
     public void start() {
@@ -64,13 +130,14 @@ public class EchoAudioTester implements AudioReceiver {
         aud.stopPlay();
         aud.stopRec();
     }
-    int count =0;
+    int count = 0;
+
     @Override
     public void newAudioDataReady(AudioFace a, int bytesAvailable) {
-        if (count < 5 ){
+        if (count < 5) {
             count++;
         }
-        if (count == 5){
+        if (count == 5) {
             aud.startPlay();
         }
         try {
@@ -85,9 +152,8 @@ public class EchoAudioTester implements AudioReceiver {
         }
     }
 
-    
     public void mayBeWriteAudio(AudioFace a, StampedAudio sa) throws AudioException {
-        int num = sa.getStamp()/step;
+        int num = sa.getStamp() / step;
         if ((num % 50) == 17) {
             Log.debug("skip stamp " + sa.getStamp());
         } else {
@@ -97,7 +163,7 @@ public class EchoAudioTester implements AudioReceiver {
 
     public static void main(String argv[]) {
         String codecName = "OPUS";
-        PureOpusCodec.PHONOSAMPLERATE = OpusCodec.SampleRate.HD;
+        PureOpusCodec.PHONOSAMPLERATE = OpusCodec.SampleRate.FM;
         PureOpusCodec.PHONOAPPLICATION = OpusCodec.Application.VOIP;
         Log.setLevel(Log.VERB);
         if (argv.length > 0) {

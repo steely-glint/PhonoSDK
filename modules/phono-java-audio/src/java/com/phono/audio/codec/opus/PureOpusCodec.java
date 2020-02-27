@@ -21,7 +21,7 @@ import org.concentus.OpusException;
  *
  * @author tim
  */
-public class PureOpusCodec implements CodecFace, EncoderFace ,DecodesFEC {
+public class PureOpusCodec implements CodecFace, EncoderFace ,DecoderFace {
 
     private OpusEncoder encoder;
     private OpusDecoder decoder;
@@ -112,7 +112,7 @@ public class PureOpusCodec implements CodecFace, EncoderFace ,DecodesFEC {
             ret = new short[sz];
             System.arraycopy(out_data, 0, ret, 0, sz);
         } catch (OpusException ex) {
-            Log.debug("Can't decode frame from opus"+ ex.getMessage());
+            Log.error("Can't decode frame from opus"+ ex.getMessage());
         }
         return ret;
     }

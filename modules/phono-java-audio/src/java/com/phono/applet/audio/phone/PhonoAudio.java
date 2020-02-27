@@ -37,9 +37,11 @@ import com.phono.audio.phone.PhonoAudioPropNames;
 import com.phono.audio.phone.StampedAudioImpl;
 import com.phono.srtplight.Log;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import javax.sound.sampled.AudioFormat;
@@ -58,7 +60,7 @@ import javax.sound.sampled.TargetDataLine;
  */
 public class PhonoAudio implements AudioFace {
 
-    static boolean DOBIGENDIAN =true; 
+    static boolean DOBIGENDIAN = true;
     public final static boolean DEFAULT_MUTE_STATE = false;
     // 8kHZ sampling rate:
     public final static float SAMPLING_RATE_8K = 8000.0F;
@@ -114,7 +116,6 @@ public class PhonoAudio implements AudioFace {
     protected FloatControl pan;
     private int _dtmfDigit = -1;
     private int _samplesPerFrame;
-   
 
     /**
      * Creates a new instance of PhonoAudio
@@ -133,16 +134,16 @@ public class PhonoAudio implements AudioFace {
         } else {
             _osname = "";
         }
-        Log.debug("Os name is "+_osname);
+        Log.debug("Os name is " + _osname);
 
         _javaVersion = System.getProperty("java.specification.version");
         _audioProperties = new Properties();
     }
-    
-    protected boolean useCDRec(){
+
+    protected boolean useCDRec() {
         return "mac os x".equals(_osname);
     }
-    
+
     protected void fillCodecMap() {
         // add all the supported Codecs, in the order of preference
         G722Codec g722Codec = new G722Codec();
@@ -191,8 +192,8 @@ public class PhonoAudio implements AudioFace {
     }
 
     /**
-     * Returns an array of available codecs (int values - as specified in IAX RFC).
-     * Must return all the codecs that can be supported by implementation.
+     * Returns an array of available codecs (int values - as specified in IAX
+     * RFC). Must return all the codecs that can be supported by implementation.
      * May be called on an uninitialized instance.
      *
      * @return The array of available codecs
@@ -218,13 +219,11 @@ public class PhonoAudio implements AudioFace {
     }
 
     /**
-     * Adds a class that will be notified of incomming audio
-     * from the microphone.
-     * Implementing class - eg PhonoAudio -
-     * will call readStampedAudio() and then send data out over wire.
-     * AudioReceiver can be null - in which case readStampedAudio()
-     * should be called directly.
-     * May be called on an uninitialized instance.
+     * Adds a class that will be notified of incomming audio from the
+     * microphone. Implementing class - eg PhonoAudio - will call
+     * readStampedAudio() and then send data out over wire. AudioReceiver can be
+     * null - in which case readStampedAudio() should be called directly. May be
+     * called on an uninitialized instance.
      *
      * @param r The AudioReceiver to be notified
      * @see #readStampedAudio()
@@ -253,12 +252,12 @@ public class PhonoAudio implements AudioFace {
     }
 
     /**
-     * Actually allocate resources.
-     * The constructor should not allocate any resources.
+     * Actually allocate resources. The constructor should not allocate any
+     * resources.
      *
-     * @param codec integer representing the codec to use.
-     * Must be one of the values in the array returned by getCodecs().
-     * May be called on an uninitialized instance.
+     * @param codec integer representing the codec to use. Must be one of the
+     * values in the array returned by getCodecs(). May be called on an
+     * uninitialized instance.
      *
      * @see #getCodecs()
      */
@@ -272,7 +271,7 @@ public class PhonoAudio implements AudioFace {
         _encode = _codec.getEncoder();
         _sampleRate = _codec.getSampleRate();
         String text = "PhonoAudio.init(): codec=" + this.getCodecString(codec) + " (" + codec + ")";
-        Log.debug("codec is "+_codec.getName()+" rate ="+_codec.getSampleRate());
+        Log.debug("codec is " + _codec.getName() + " rate =" + _codec.getSampleRate());
         if (_codec == null) {
             Log.debug(text + " is not supported.");
             throw new AudioException(text + " is not supported");
@@ -293,7 +292,6 @@ public class PhonoAudio implements AudioFace {
         }
 
         _deep = 2 * (latency / 20);
-
 
         // frame interval in milliseconds is:
         int frameIntMS = _codec.getFrameInterval();
@@ -323,8 +321,9 @@ public class PhonoAudio implements AudioFace {
     }
 
     /**
-     * Returns the optimum size of a frame.
-     * May not be called on an uninitialized instance.
+     * Returns the optimum size of a frame. May not be called on an
+     * uninitialized instance.
+     *
      * @throws IllegalStateException
      */
     public int getFrameSize() throws IllegalStateException {
@@ -338,9 +337,9 @@ public class PhonoAudio implements AudioFace {
     }
 
     /**
-     * Returns the frame interval in ms,
-     * normally 20.
-     * May not be called on an uninitialized instance.
+     * Returns the frame interval in ms, normally 20. May not be called on an
+     * uninitialized instance.
+     *
      * @throws IllegalStateException
      */
     public int getFrameInterval() throws IllegalStateException {
@@ -357,6 +356,7 @@ public class PhonoAudio implements AudioFace {
     /**
      * Returns the current codec in use (int values - as specified in IAX RFC).
      * May not be called on an uninitialized instance.
+     *
      * @throws IllegalStateException
      */
     public long getCodec() throws IllegalStateException {
@@ -370,13 +370,11 @@ public class PhonoAudio implements AudioFace {
     }
 
     /**
-     * Obtains a 'cleaned' or unused StampedAudio,
-     * used as a factory method in place of 'new'.
-     * Implementations may choose to recycle StampedAudios after they
-     * have been read.
-     * Implementations may choose to assume that this method is _only_
-     * ever called by the protocol stack in order to store data prior to
-     * calling writeStampedAudio().
+     * Obtains a 'cleaned' or unused StampedAudio, used as a factory method in
+     * place of 'new'. Implementations may choose to recycle StampedAudios after
+     * they have been read. Implementations may choose to assume that this
+     * method is _only_ ever called by the protocol stack in order to store data
+     * prior to calling writeStampedAudio().
      *
      * @return A clean or unused instance of StampedAudio.
      * @see StampedAudio
@@ -396,14 +394,14 @@ public class PhonoAudio implements AudioFace {
     }
 
     /**
-     * Returns a copy  of all the available properties of this audio channnel.
+     * Returns a copy of all the available properties of this audio channnel.
      * eg:
      * <ol>
-     *    <li>playLevel</li>
-     *    <li>recLevel</li>
-     *    <li>ec</li>
-     *    <li>pitchShift</li>
-     *    <li>field</li>
+     * <li>playLevel</li>
+     * <li>recLevel</li>
+     * <li>ec</li>
+     * <li>pitchShift</li>
+     * <li>field</li>
      * </ol>
      */
     public Properties getAudioProperties() {
@@ -416,8 +414,8 @@ public class PhonoAudio implements AudioFace {
      * @param name The name of the property
      * @param value The value of the property
      *
-     * @return false if property unsupported or not settable,
-     * true if property set.
+     * @return false if property unsupported or not settable, true if property
+     * set.
      * @throws IllegalArgumentException if value invalid
      */
     public boolean setAudioProperty(String name, Object value)
@@ -514,8 +512,8 @@ public class PhonoAudio implements AudioFace {
 
             } catch (LineUnavailableException lue) {
                 lue.printStackTrace();
-                Log.error("failed to get play audio format of "+pfmt);
-                Log.error("Using "+info);
+                Log.error("failed to get play audio format of " + pfmt);
+                Log.error("Using " + info);
 //                Log.database(lue, this, "initPlay");
                 throw new AudioException(lue.getMessage(), lue);
             } catch (Exception e) {
@@ -531,21 +529,34 @@ public class PhonoAudio implements AudioFace {
         int flen = stampedAudio.getLength();
         byte[] bs = stampedAudio.getData();
         if (next != null) {
-            if (_decode instanceof DecodesFEC){
-                int feclen = writeBuff(flen, offs, bs,true);
-                Log.debug("doing  FEC for this lost frame. Revived "+feclen);
+            if (_decode instanceof DecodesFEC) {
+                int feclen = writeBuff(flen, offs, bs, true);
+                Log.info("doing  FEC for this lost frame. Revived " + feclen);
             } else {
-                Log.debug("can't FEC for this lost frame ");
+                Log.info("can't FEC for this lost frame ");
             }
         }
         int dlen = writeBuff(flen, offs, bs);
         _timestampPlay = stampedAudio.getStamp();
-        Log.verb("PhonoAudio.orderedWrite(): Wrote packet to audio timestamp=" + _timestampPlay + " len =" + dlen);
+        Log.info("PhonoAudio.orderedWrite(): Wrote packet to audio timestamp=" + _timestampPlay + " len =" + dlen);
     }
+
     private int writeBuff(int flen, int offs, byte[] bs) throws AudioException {
-        return writeBuff(flen,  offs,  bs, false);
+        return writeBuff(flen, offs, bs, false);
     }
-    private int writeBuff(int flen, int offs, byte[] bs,boolean fec) throws AudioException {
+
+    /*
+    FEC narrative
+    writeBuff() has a flag saying if this frame is to be fec'd
+    which is passed to codec.decode_frame
+    here are the rules decode_frame applies:
+    decode_fec Indicates that we want to recreate the PREVIOUS (lost) packet using FEC data from THIS packet. Using this packet
+    recovery scheme, you will actually decode this packet twice, first with decode_fec TRUE and then again with FALSE. If FEC data is not
+    available in this packet, the decoder will simply generate a best-effort recreation of the lost packet. In that case,
+    the length of frame_size must be EXACTLY the length of the audio that was lost, or else the decoder will be in an inconsistent state.
+    -- TBD is this last bit true for us ?
+     */
+    private int writeBuff(int flen, int offs, byte[] bs, boolean fec) throws AudioException {
         int av = _play.available();
         int olen = 0;
         // variable length - have to assume that it is a whole packet
@@ -553,7 +564,7 @@ public class PhonoAudio implements AudioFace {
         while ((flen >= cfs) && (flen > 0)) {
             byte[] ebuff = (_encodedbuffPlay != null) ? _encodedbuffPlay : new byte[flen];
             System.arraycopy(bs, offs, ebuff, 0, cfs);
-            short[] sframe = _decode.decode_frame(ebuff,fec);
+            short[] sframe = _decode.decode_frame(ebuff, fec);
             int dlen = 0;
             if (sframe != null) {
                 int trimmed = 0;
@@ -600,11 +611,19 @@ public class PhonoAudio implements AudioFace {
         return olen;
     }
 
-    /**
-     * Sends audio data to the speakers.
-     *
-     * @param stampedAudio The stamped audio to play
-     */
+
+
+            
+// rules:
+// if it is too old, dump it (we may have fec'd)
+// play it if it is next
+// if it isn't next queue it - in the hope that an out-of-order will arrive
+// unless the queue is > 2 (deep/2?)
+// in which case you fec the missing one - using the oldest one you have.
+// and play out everything you have in the correct order.
+// stop feeding if the writebuff squeals.
+
+
     // is/was PhonoAudio.audioOut(byte[] bs, int offs, int flen)
     public void writeStampedAudio(StampedAudio stampedAudio) throws AudioException {
         if (_play != null) {
@@ -619,11 +638,21 @@ public class PhonoAudio implements AudioFace {
                     startPlay();
                 }
             }
+            /*
+             * writeStampedAudio:
+             * calculates the next stamp it is expecting. (prev + frameInterval)
+             * if holdplay != null and the current stamp is later, then playout the held one
+             * and reset next to where one beyond holdplay
+             * it looks at the current and decides if it is > than next by 'enough'
+             * and we don't have a holdplay
+             * 
+             * -- this is all wrong....
+             */
             int nextStamp = _timestampPlay + _codec.getFrameInterval();
             if ((_holdPlay != null) && (_holdPlay.getStamp() < stamp)) {
                 // assume missing one was dropped so play this packet anyhow,
                 StampedAudio a = _holdPlay;
-                Log.verb("PhonoAudio.writeStampedAudio(): about to play a delayed packet " + _holdPlay.getStamp() + " expecting " + nextStamp);
+                Log.info("PhonoAudio.writeStampedAudio(): about to play a delayed packet " + _holdPlay.getStamp() + " expecting " + nextStamp);
                 orderedWrite(_holdPlay, stampedAudio);
                 nextStamp = _holdPlay.getStamp() + _codec.getFrameInterval();
                 _holdPlay = null;
@@ -632,21 +661,23 @@ public class PhonoAudio implements AudioFace {
                 // lost one for now - hope it is mis-ordered
                 // hold this packet for later use, do not play it yet
                 _holdPlay = stampedAudio;
-                Log.verb("PhonoAudio.writeStampedAudio(): Held a misordered packet " + stamp + " expecting " + nextStamp);
+                Log.info("PhonoAudio.writeStampedAudio(): Held a misordered packet " + stamp + " expecting " + nextStamp);
             } else {
                 if (stamp > _timestampPlay) {
+                    Log.info("PhonoAudio.writeStampedAudio(): playing expected packet " + stamp + " expecting " + nextStamp);
                     orderedWrite(stampedAudio, null);
                 } else {
                     // did we wrap?? or perhaps transfer ?
                     if ((_timestampPlay - stamp) > 1000) {
                         // this will set _timestampPlay again
+                        Log.info("PhonoAudio.writeStampedAudio(): playing wrapped packet " + stamp + " expecting " + nextStamp);
                         orderedWrite(stampedAudio, null);
                     } else {
-                        Log.debug("PhonoAudio.writeStampedAudio(): dumped a duplicate packet " + stamp + " expecting " + nextStamp);
+                        Log.info("PhonoAudio.writeStampedAudio(): dumped a duplicate packet " + stamp + " expecting " + nextStamp);
                     }
                 }
                 if (_holdPlay != null) {
-                    Log.verb("PhonoAudio.writeStampedAudio(): about to play a misordered packet " + _holdPlay.getStamp() + " expecting " + nextStamp);
+                    Log.info("PhonoAudio.writeStampedAudio(): about to play a misordered packet " + _holdPlay.getStamp() + " expecting " + nextStamp);
                     orderedWrite(_holdPlay, null);
                     _holdPlay = null;
                 }
@@ -686,14 +717,14 @@ public class PhonoAudio implements AudioFace {
             int recBuffsz = _bytesPerFrame * _deep;
 
             // macs won't give you 8k slin 
-            if (useCDRec()){
+            if (useCDRec()) {
                 recfmt = _bestMacFormat;
                 int mbpf = _bytesPerFrame * (int) recfmt.getFrameRate() / (int) _sampleRate;
                 recBuffsz = mbpf * _deep;
                 _downSampleBuff = new byte[mbpf];
-                Log.debug("Using sample rate of "+recfmt.getFrameRate()+" downsample to "+_sampleRate );
+                Log.debug("Using sample rate of " + recfmt.getFrameRate() + " downsample to " + _sampleRate);
             } else {
-                Log.debug("Using native sample rate of "+_sampleRate );
+                Log.debug("Using native sample rate of " + _sampleRate);
             }
             Log.debug("PhonoAudio.initMic(): audioFormat = " + recfmt);
             DataLine.Info info = null;
@@ -770,7 +801,6 @@ public class PhonoAudio implements AudioFace {
                 // record this recording (mic) sound
                 // openRecordingFiles();
                 // _recF.write(_framebuffR, 0, _bytesPerFrame);
-
                 short[] sframe = CodecUtil.bytesToShorts(_framebuffR);
                 short[] seframe = effectIn(sframe);
                 byte[] tbuff = _encode.encode_frame(seframe);
@@ -889,10 +919,9 @@ public class PhonoAudio implements AudioFace {
     }
 
     /**
-     * Reads data from the audio queue.
-     * May block for upto 2x frame interval,
-     * otherwise returns null.
-     * May throw an exception if Audio Channel is not set up correctly.
+     * Reads data from the audio queue. May block for upto 2x frame interval,
+     * otherwise returns null. May throw an exception if Audio Channel is not
+     * set up correctly.
      *
      * @return a StampedAudio containing a framesize worth of data.
      * @see #getFrameSize()
