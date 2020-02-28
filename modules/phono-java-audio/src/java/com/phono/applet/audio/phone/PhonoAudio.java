@@ -564,10 +564,10 @@ public class PhonoAudio implements AudioFace {
         while ((flen >= cfs) && (flen > 0)) {
             byte[] ebuff = (_encodedbuffPlay != null) ? _encodedbuffPlay : new byte[flen];
             System.arraycopy(bs, offs, ebuff, 0, cfs);
-            Long then = System.currentTimeMillis();
+            //Long then = System.currentTimeMillis();
             short[] sframe = _decode.decode_frame(ebuff, fec);
-            Long now = System.currentTimeMillis();
-            Log.info("decode "+ _decode.getClass().getSimpleName()+" took "+ (now-then)+" ms");
+            //Long now = System.currentTimeMillis();
+            //Log.info("decode "+ _decode.getClass().getSimpleName()+" took "+ (now-then)+" ms");
             int dlen = 0;
             if (sframe != null) {
                 int trimmed = 0;
@@ -648,14 +648,12 @@ public class PhonoAudio implements AudioFace {
              * and reset next to where one beyond holdplay
              * it looks at the current and decides if it is > than next by 'enough'
              * and we don't have a holdplay
-             * 
-             * -- this is all wrong....
              */
             int nextStamp = _timestampPlay + _codec.getFrameInterval();
             if ((_holdPlay != null) && (_holdPlay.getStamp() < stamp)) {
                 // assume missing one was dropped so play this packet anyhow,
                 StampedAudio a = _holdPlay;
-                Log.info("PhonoAudio.writeStampedAudio(): about to play a delayed packet " + _holdPlay.getStamp() + " expecting " + nextStamp);
+                Log.debug("PhonoAudio.writeStampedAudio(): about to play a delayed packet " + _holdPlay.getStamp() + " expecting " + nextStamp);
                 orderedWrite(_holdPlay, stampedAudio);
                 nextStamp = _holdPlay.getStamp() + _codec.getFrameInterval();
                 _holdPlay = null;
@@ -664,23 +662,23 @@ public class PhonoAudio implements AudioFace {
                 // lost one for now - hope it is mis-ordered
                 // hold this packet for later use, do not play it yet
                 _holdPlay = stampedAudio;
-                Log.info("PhonoAudio.writeStampedAudio(): Held a misordered packet " + stamp + " expecting " + nextStamp);
+                Log.debug("PhonoAudio.writeStampedAudio(): Held a misordered packet " + stamp + " expecting " + nextStamp);
             } else {
                 if (stamp > _timestampPlay) {
-                    Log.info("PhonoAudio.writeStampedAudio(): playing expected packet " + stamp + " expecting " + nextStamp);
+                    Log.verb("PhonoAudio.writeStampedAudio(): playing expected packet " + stamp + " expecting " + nextStamp);
                     orderedWrite(stampedAudio, null);
                 } else {
                     // did we wrap?? or perhaps transfer ?
                     if ((_timestampPlay - stamp) > 1000) {
                         // this will set _timestampPlay again
-                        Log.info("PhonoAudio.writeStampedAudio(): playing wrapped packet " + stamp + " expecting " + nextStamp);
+                        Log.debug("PhonoAudio.writeStampedAudio(): playing wrapped packet " + stamp + " expecting " + nextStamp);
                         orderedWrite(stampedAudio, null);
                     } else {
-                        Log.info("PhonoAudio.writeStampedAudio(): dumped a duplicate packet " + stamp + " expecting " + nextStamp);
+                        Log.debug("PhonoAudio.writeStampedAudio(): dumped a duplicate packet " + stamp + " expecting " + nextStamp);
                     }
                 }
                 if (_holdPlay != null) {
-                    Log.info("PhonoAudio.writeStampedAudio(): about to play a misordered packet " + _holdPlay.getStamp() + " expecting " + nextStamp);
+                    Log.debug("PhonoAudio.writeStampedAudio(): about to play a misordered packet " + _holdPlay.getStamp() + " expecting " + nextStamp);
                     orderedWrite(_holdPlay, null);
                     _holdPlay = null;
                 }

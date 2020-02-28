@@ -21,7 +21,7 @@ import org.concentus.OpusException;
  *
  * @author tim
  */
-public class PureOpusCodec implements CodecFace, EncoderFace ,DecoderFace {
+public class PureOpusCodec implements CodecFace, EncoderFace , DecodesFEC {
 
     private OpusEncoder encoder;
     private OpusDecoder decoder;
