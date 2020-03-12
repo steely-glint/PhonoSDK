@@ -538,7 +538,7 @@ public class PhonoAudio implements AudioFace {
         }
         int dlen = writeBuff(flen, offs, bs);
         _timestampPlay = stampedAudio.getStamp();
-        Log.info("PhonoAudio.orderedWrite(): Wrote packet to audio timestamp=" + _timestampPlay + " len =" + dlen);
+        Log.verb("PhonoAudio.orderedWrite(): Wrote packet to audio timestamp=" + _timestampPlay + " len =" + dlen);
     }
 
     private int writeBuff(int flen, int offs, byte[] bs) throws AudioException {
