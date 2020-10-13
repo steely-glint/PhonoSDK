@@ -531,9 +531,9 @@ public class PhonoAudio implements AudioFace {
         if (next != null) {
             if (_decode instanceof DecodesFEC) {
                 int feclen = writeBuff(flen, offs, bs, true);
-                Log.info("doing  FEC for this lost frame. Revived " + feclen);
+                Log.debug("doing  FEC for this lost frame. Revived " + feclen);
             } else {
-                Log.info("can't FEC for this lost frame ");
+                Log.debug("can't FEC for this lost frame ");
             }
         }
         int dlen = writeBuff(flen, offs, bs);

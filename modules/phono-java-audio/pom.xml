@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.phono</groupId>
     <artifactId>audio</artifactId>
-    <version>1.1.9</version>
+    <version>1.1.91</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -44,7 +44,7 @@
     <groupId>junit</groupId>
     <artifactId>junit</artifactId>
     <scope>test</scope>
-    <version>4.11</version>
+    <version>4.13.1</version>
   </dependency>
     <dependency>
         <groupId>org.concentus</groupId>
