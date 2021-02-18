@@ -14,14 +14,14 @@
         <dependency>
             <groupId>com.phono</groupId>
             <artifactId>srtplight</artifactId>
-            <version>1.1.6</version>
+            <version>1.1.7</version>
         </dependency>
 <!-- https://mvnrepository.com/artifact/javazoom/jlayer -->
 <!--dependency>
     <groupId>javazoom</groupId>
     <artifactId>jlayer</artifactId>
     <version>1.0.1</versio>
-</dependency-->
+</dependency>
     <dependency>
         <groupId>org.seleniumhq.selenium</groupId>
         <artifactId>selenium-java</artifactId>
@@ -39,7 +39,7 @@
         <artifactId>selenium-remote-driver</artifactId>
       </exclusion>
     </exclusions>
-  </dependency>
+  </dependency-->
   <dependency>
     <groupId>junit</groupId>
     <artifactId>junit</artifactId>
