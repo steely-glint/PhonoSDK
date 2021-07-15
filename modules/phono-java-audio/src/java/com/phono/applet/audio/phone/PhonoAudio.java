@@ -303,7 +303,7 @@ public class PhonoAudio implements AudioFace {
         _bytesPerFrame = _samplesPerFrame * 2;
 
         _codecFrameSize = _codec.getFrameSize();
-        _stampedBuffer = new StampedAudioImpl[frameRateSec];
+        _stampedBuffer = new StampedAudio[frameRateSec];
 
         _deep = Math.max(6, _deep);
         if (_javaVersion.startsWith("1.4")) {
@@ -809,7 +809,7 @@ public class PhonoAudio implements AudioFace {
                 Log.verb("PhonoAudio.readMic(): c=" + c + ", av=" + av + ", bsz=" + bsz);
 
                 if (tbuff != null) {
-                    StampedAudioImpl stampedAudio = new StampedAudioImpl();
+                    StampedAudio stampedAudio = getCleanStampedAudio();
                     stampedAudio.setStampAndBytes(tbuff, 0, tbuff.length, timestamp);
                     saveReadStampedAudio(stampedAudio);
                 }

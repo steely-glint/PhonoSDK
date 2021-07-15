@@ -94,6 +94,7 @@ public class EchoAudioTester implements AudioReceiver {
         aud = new PhonoAudioShim() {
             protected void fillCodecMap() {
                 super.fillCodecMap();
+                
                 CodecFace nat = _codecMap.get(PureOpusCodec.AUDIO_OPUS);
                 Log.info("opus codec is "+nat.getClass().getSimpleName());
                 if ((nat != null) && (nat instanceof OpusCodec)) {
