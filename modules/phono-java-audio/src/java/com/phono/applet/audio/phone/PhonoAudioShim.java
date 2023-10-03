@@ -55,7 +55,7 @@ public class PhonoAudioShim extends EsupPhonoAudio {
     DataOutputStream speakeros = null;
     DataOutputStream speakbufos = null;
     DataOutputStream cancelledos = null;
-    boolean debugAudio = false; // Write samples to local disk
+    private boolean debugAudio = false; // Write samples to local disk
     int cutterTime = 0; // Don't cut for this long
     int dropMicSamples = 48;
     private String _mixinName = null;
@@ -71,6 +71,7 @@ public class PhonoAudioShim extends EsupPhonoAudio {
         cutterTime = CUTTER_TIME;
         //_ec = new EchoCanceler();
         _speakBuf = new SampleBuffer(SPEAKER_BUFFER_LEN);
+        debugAudio =  (System.getProperty("com.phono.applet.audio.phone.audioDebug") != null);
         if (debugAudio) {
             Log.debug("Allocate debug file streams.");
             try {

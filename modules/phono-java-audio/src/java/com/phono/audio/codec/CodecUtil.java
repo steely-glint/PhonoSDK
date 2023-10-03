@@ -14,23 +14,39 @@
  * limitations under the License.
  *
  */
-
 package com.phono.audio.codec;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.ShortBuffer;
 
 /**
  * CodecUtil
  *
  */
-
 public class CodecUtil {
-    
-    /** Creates a new instance of CodecUtil */
+
+    /**
+     * Creates a new instance of CodecUtil
+     */
     public CodecUtil() {
     }
-    
-    
-    public static short[] bytesToShorts(byte byteBuffer[]) {
-        int len = byteBuffer.length/2;
+
+    public static short[] bytesToShorts(byte ab[], ByteOrder o) {
+        short[] dst = new short[ab.length / 2];
+        ByteBuffer bb = ByteBuffer.wrap(ab);
+        bb.order(o);
+        ShortBuffer sb = bb.asShortBuffer();
+        sb.get(dst);
+        return (dst);
+    }
+
+    public static short[] bytesToShorts(byte ab[]) {
+        return bytesToShorts(ab,ByteOrder.BIG_ENDIAN);
+    }
+
+    public static short[] bytesToShortsOld(byte byteBuffer[]) {
+        int len = byteBuffer.length / 2;
         short[] output = new short[len];
         int j = 0;
 
@@ -41,15 +57,13 @@ public class CodecUtil {
 //            output[i] = (short) (byteBuffer[j++] << 8);
 //            output[i] += ((0x7f &byteBuffer[j]) + (byteBuffer[j] < 0 ? 128 : 0));
 //            j++;
-            
         }
         return output;
     }
 
-
     public static byte[] shortsToBytes(short shortBuffer[]) {
         int len = shortBuffer.length;
-        byte[] output = new byte[len*2];
+        byte[] output = new byte[len * 2];
         int j = 0;
 
         for (int i = 0; i < len; i++) {

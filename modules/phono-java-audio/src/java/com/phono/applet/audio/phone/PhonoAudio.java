@@ -37,6 +37,7 @@ import com.phono.audio.phone.PhonoAudioPropNames;
 import com.phono.audio.phone.StampedAudioImpl;
 import com.phono.srtplight.Log;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -802,7 +803,7 @@ public class PhonoAudio implements AudioFace {
                 // record this recording (mic) sound
                 // openRecordingFiles();
                 // _recF.write(_framebuffR, 0, _bytesPerFrame);
-                short[] sframe = CodecUtil.bytesToShorts(_framebuffR);
+                short[] sframe = CodecUtil.bytesToShorts(_framebuffR,DOBIGENDIAN?ByteOrder.BIG_ENDIAN:ByteOrder.LITTLE_ENDIAN);
                 short[] seframe = effectIn(sframe);
                 byte[] tbuff = _encode.encode_frame(seframe);
 
