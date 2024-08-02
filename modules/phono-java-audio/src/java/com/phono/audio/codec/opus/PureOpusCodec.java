@@ -28,7 +28,7 @@ public class PureOpusCodec implements CodecFace, EncoderFace , DecodesFEC {
 
     public static OpusCodec.SampleRate PHONOSAMPLERATE = OpusCodec.SampleRate.FM;
     public static OpusCodec.Application PHONOAPPLICATION = OpusCodec.Application.VOIP;
-    final static int CHANNELS = 1;
+    public static int CHANNELS = 1;
     private final int maxpkt;
     private final int maxaudio;
     public static int FRAMEINTERVAL = 40;

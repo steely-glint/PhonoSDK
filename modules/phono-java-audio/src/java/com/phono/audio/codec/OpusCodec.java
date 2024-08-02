@@ -84,7 +84,7 @@ private final static int OPUS_GET_SAMPLE_RATE_REQUEST = 4029;
     public final static long OPUS_CODEC = (1L << 34);
     final int ENCODER = 0;
     final int DECODER = 1;
-    final static int CHANNELS = 1;
+    public static int CHANNELS = 1;
     private volatile ByteBuffer _enc; // C pointers for the encoder
     private volatile ByteBuffer _dec; // C pointers for the encoder
 
