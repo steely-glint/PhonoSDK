@@ -8,7 +8,6 @@ import com.phono.srtplight.Log;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.Linker;
-import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SymbolLookup;
 import java.lang.foreign.ValueLayout;
@@ -22,7 +21,17 @@ import java.nio.ByteOrder;
 class ForeignOpus {
 
     public static boolean loadLib(String fullPathToLib) {
-        return true;
+        boolean ret = false;
+        try {
+            var arena = Arena.ofConfined();
+            var opusLib = SymbolLookup.libraryLookup("libopus.so", arena);
+            ret = opusLib != null;
+            arena.close();
+            Log.warn("JNI-free libopus will be used");
+        } catch (Throwable t) {
+            Log.warn("No libopus on library path");
+        }
+        return ret;
     }
 
     private MethodHandle opus_encoder_get_size_handle;
@@ -35,10 +44,15 @@ class ForeignOpus {
     private MethodHandle opus_encoder_init_handle;
     private MethodHandle opus_decoder_init_handle;
     private MethodHandle opus_decode_handle;
-    private int maxaudio;
-    private MemorySegment audio;
-    private MemorySegment nwire;
+    private int decMaxAudio;
+    private int encMaxAudio;
+
+    private MemorySegment audio_out;
+    private MemorySegment nwire_in;
     private int MAX_PKT_SZ = 1200;
+    private MemorySegment audio_in;
+    private MemorySegment nwire_out;
+    private MethodHandle opus_encode_handle;
 
     ForeignOpus() {
         try {
@@ -68,7 +82,7 @@ class ForeignOpus {
             x.printStackTrace();
             System.exit(0);
         }
-        maxaudio = 48 * chans * 60;
+        decMaxAudio = 2 * 48 * chans * 60;
         return (int) sz;
     }
 
@@ -89,6 +103,8 @@ class ForeignOpus {
             x.printStackTrace();
             System.exit(0);
         }
+        encMaxAudio = 2 * 48 * chans * 60;
+
         return (int) sz;
     }
 
@@ -117,6 +133,9 @@ class ForeignOpus {
             enc = arena.allocate(esz);
             var ret = (int) opus_encoder_init_handle.invokeExact(enc, rate, channels, application);
             Log.info("encoder init ret was " + ret);
+            nwire_out = arena.allocate(MAX_PKT_SZ);
+            audio_in = arena.allocate(encMaxAudio);
+
         } catch (Throwable x) {
             x.printStackTrace();
             System.exit(0);
@@ -134,8 +153,8 @@ class ForeignOpus {
             dec = arena.allocate(sz);
             var ret = (int) opus_decoder_init_handle.invokeExact(dec, rate, channels);
             Log.info("decoder init ret was " + ret);
-            audio = arena.allocate(2 * maxaudio);
-            nwire = arena.allocate(MAX_PKT_SZ);
+            audio_out = arena.allocate(decMaxAudio);
+            nwire_in = arena.allocate(MAX_PKT_SZ);
 
         } catch (Throwable x) {
             x.printStackTrace();
@@ -168,11 +187,11 @@ class ForeignOpus {
                 var addr = opusLib.find("opus_decode").get();
                 opus_decode_handle = linker.downcallHandle(addr, sig);
             }
-            synchronized (audio) {
-                nwire.asByteBuffer().put(wire);
-                var al = (int) opus_decode_handle.invokeExact(dec, nwire, wire.length, audio, maxaudio * 2, doFec);
+            synchronized (audio_out) {
+                nwire_in.asByteBuffer().put(wire);
+                var al = (int) opus_decode_handle.invokeExact(dec, nwire_in, wire.length, audio_out, decMaxAudio, doFec);
                 dst = new short[al];
-                var ab = audio.asByteBuffer().order(ByteOrder.nativeOrder()).asShortBuffer().get(dst);
+                audio_out.asByteBuffer().order(ByteOrder.nativeOrder()).asShortBuffer().get(dst);
             }
             Log.info("decoded data is " + dst.length);
         } catch (Throwable x) {
@@ -184,9 +203,33 @@ class ForeignOpus {
     }
 
     protected byte[] opusEncode(short[] audio) {
-        System.exit(0);
-
-        return new byte[0];
+        byte[] ret;
+        try {
+            if (opus_encode_handle == null) {
+                var sig = FunctionDescriptor.of(ValueLayout.JAVA_INT,
+                        ValueLayout.ADDRESS, //decoder
+                        ValueLayout.ADDRESS, //audio data
+                        ValueLayout.JAVA_INT, //audio length
+                        ValueLayout.ADDRESS, // output buffer
+                        ValueLayout.JAVA_INT // size of output buffer
+                );
+                var addr = opusLib.find("opus_encode").get();
+                opus_encode_handle = linker.downcallHandle(addr, sig);
+            }
+            synchronized (audio_in) {
+                Log.debug("audio size is " + audio.length + " audio_in is " + audio_in.byteSize() + " maxaudio is " + encMaxAudio);
+                audio_in.asByteBuffer().order(ByteOrder.nativeOrder()).asShortBuffer().put(audio);
+                var al = (int) opus_encode_handle.invokeExact(enc, audio_in, audio.length, nwire_out, MAX_PKT_SZ);
+                ret = new byte[al];
+                nwire_out.asByteBuffer().get(ret);
+            }
+            Log.info("encoded data is " + ret.length);
+        } catch (Throwable x) {
+            x.printStackTrace();
+            System.exit(0);
+            ret = new byte[0];
+        }
+        return ret;
     }
 
     protected void opusSetCtl(int ctl, int val, int eord) {

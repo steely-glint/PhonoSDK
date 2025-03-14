@@ -94,7 +94,7 @@ public class EchoAudioTester implements AudioReceiver {
         aud = new PhonoAudioShim() {
             protected void fillCodecMap() {
                 super.fillCodecMap();
-                
+                /*
                 CodecFace nat = _codecMap.get(PureOpusCodec.AUDIO_OPUS);
                 Log.info("opus codec is "+nat.getClass().getSimpleName());
                 if ((nat != null) && (nat instanceof OpusCodec)) {
@@ -105,10 +105,12 @@ public class EchoAudioTester implements AudioReceiver {
                 } else {
                     Log.info("No native opus codec found");
                 }
+                  */
             }
         };
         aud.addAudioReceiver(this);
         aud.setAudioProperty(PhonoAudioPropNames.DOEC, "false");
+        aud.setAudioInName("Audio [plughw:0,0]");
 
         Long codecL = CodecFace.AUDIO_ULAW;
         long[] codecs = aud.getCodecs();

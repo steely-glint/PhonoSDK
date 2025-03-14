@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
  *
  * @author tim
  */
-public class OpusCodec implements CodecFace, EncoderFace, DecoderFace {
+public class OpusCodec extends ForeignOpus  implements CodecFace, EncoderFace, DecoderFace {
 
     public enum Application {
         VOIP(2048),
@@ -88,51 +88,17 @@ private final static int OPUS_GET_SAMPLE_RATE_REQUEST = 4029;
     private volatile ByteBuffer _enc; // C pointers for the encoder
     private volatile ByteBuffer _dec; // C pointers for the encoder
 
-    private native int getDecoderSize(int chans);
 
-    private native int getEncoderSize(int chans);
-
-    private native void initEncoder(int rate, int channels, int application);
-
-    private native void initDecoder(int rate, int channels);
-
-    private native short[] opusDecode(byte[] wire, int doFec);
-
-    private native byte[] opusEncode(short[] audio);
-
-    private native void opusSetCtl(int ctl, int val, int eord);
-
-    private native int opusGetCtl(int ctl, int eord);
-
-    private native void freeCodec();
     private static boolean __loaded = false;
 
     // these can be set from the application.
     public static SampleRate PHONOSAMPLERATE = SampleRate.FM;
     public static Application PHONOAPPLICATION = Application.VOIP;
 
-    public static boolean loadLib(String fullPathToLib) {
-        try {
-            if (!__loaded) {
-                if (fullPathToLib == null) {
-                    System.loadLibrary("phono-opus");
-                    __loaded = true;
-                } else {
-                    System.load(fullPathToLib);
-                    __loaded = true;
-                }
-            }
-        } catch (java.lang.UnsatisfiedLinkError ex) {
-            Log.warn("no suitable native libphono-opus :" + ex.getMessage());
-        }
-        return __loaded;
-    }
+
 
     public OpusCodec() {
-        int esz = getEncoderSize(CHANNELS);
-        int dsz = getDecoderSize(CHANNELS);
-        _enc = ByteBuffer.allocateDirect(esz);
-        _dec = ByteBuffer.allocateDirect(dsz);
+
         Log.debug("initing native opus codec with rate=" + PHONOSAMPLERATE.Value + " ch=" + CHANNELS + " App=" + PHONOAPPLICATION.Value);
         initEncoder(PHONOSAMPLERATE.Value, CHANNELS, PHONOAPPLICATION.Value);
         initDecoder(PHONOSAMPLERATE.Value, CHANNELS);
