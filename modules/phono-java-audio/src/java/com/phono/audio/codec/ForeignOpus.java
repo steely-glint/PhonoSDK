@@ -27,7 +27,7 @@ class ForeignOpus {
             var opusLib = SymbolLookup.libraryLookup("libopus.so", arena);
             ret = opusLib != null;
             arena.close();
-            Log.warn("JNI-free libopus will be used");
+            Log.info("JNI-free libopus will be used");
         } catch (Throwable t) {
             Log.warn("No libopus on library path");
         }
@@ -59,10 +59,8 @@ class ForeignOpus {
             arena = Arena.ofShared();
             linker = Linker.nativeLinker();
             opusLib = SymbolLookup.libraryLookup("libopus.so", arena);
-
         } catch (Throwable x) {
             x.printStackTrace();
-            System.exit(0);
         }
     }
 
@@ -79,8 +77,7 @@ class ForeignOpus {
             sz = (long) opus_decoder_get_size_handle.invokeExact(chans);
             Log.info("decoder is " + sz);
         } catch (Throwable x) {
-            x.printStackTrace();
-            System.exit(0);
+            Log.error("can't size decoder "+x.getMessage());
         }
         decMaxAudio = 2 * 48 * chans * 60;
         return (int) sz;
@@ -98,10 +95,8 @@ class ForeignOpus {
                 opus_encoder_get_size_handle = linker.downcallHandle(opus_encoder_get_size_addr, opus_coder_get_size_sig);
             }
             sz = (long) opus_encoder_get_size_handle.invokeExact(chans);
-            Log.info("encoder is " + sz);
         } catch (Throwable x) {
-            x.printStackTrace();
-            System.exit(0);
+            Log.error("can't size encoder "+x.getMessage());
         }
         encMaxAudio = 2 * 48 * chans * 60;
 
@@ -132,13 +127,11 @@ class ForeignOpus {
             }
             enc = arena.allocate(esz);
             var ret = (int) opus_encoder_init_handle.invokeExact(enc, rate, channels, application);
-            Log.info("encoder init ret was " + ret);
             nwire_out = arena.allocate(MAX_PKT_SZ);
             audio_in = arena.allocate(encMaxAudio);
 
         } catch (Throwable x) {
-            x.printStackTrace();
-            System.exit(0);
+            Log.error("can't init encoder "+x.getMessage());
         }
     }
 
@@ -152,13 +145,11 @@ class ForeignOpus {
             }
             dec = arena.allocate(sz);
             var ret = (int) opus_decoder_init_handle.invokeExact(dec, rate, channels);
-            Log.info("decoder init ret was " + ret);
             audio_out = arena.allocate(decMaxAudio);
             nwire_in = arena.allocate(MAX_PKT_SZ);
 
         } catch (Throwable x) {
-            x.printStackTrace();
-            System.exit(0);
+            Log.error("can't init decoder "+x.getMessage());
         }
     }
 
@@ -193,10 +184,8 @@ class ForeignOpus {
                 dst = new short[al];
                 audio_out.asByteBuffer().order(ByteOrder.nativeOrder()).asShortBuffer().get(dst);
             }
-            Log.info("decoded data is " + dst.length);
         } catch (Throwable x) {
-            x.printStackTrace();
-            System.exit(0);
+            Log.error("can't decode "+x.getMessage());
             dst = new short[0];
         }
         return dst;
@@ -223,10 +212,8 @@ class ForeignOpus {
                 ret = new byte[al];
                 nwire_out.asByteBuffer().get(ret);
             }
-            Log.info("encoded data is " + ret.length);
         } catch (Throwable x) {
-            x.printStackTrace();
-            System.exit(0);
+            Log.error("can't encode "+x.getMessage());
             ret = new byte[0];
         }
         return ret;

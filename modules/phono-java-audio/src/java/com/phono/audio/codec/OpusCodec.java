@@ -98,7 +98,7 @@ private final static int OPUS_GET_SAMPLE_RATE_REQUEST = 4029;
 
 
     public OpusCodec() {
-
+        super();
         Log.debug("initing native opus codec with rate=" + PHONOSAMPLERATE.Value + " ch=" + CHANNELS + " App=" + PHONOAPPLICATION.Value);
         initEncoder(PHONOSAMPLERATE.Value, CHANNELS, PHONOAPPLICATION.Value);
         initDecoder(PHONOSAMPLERATE.Value, CHANNELS);
